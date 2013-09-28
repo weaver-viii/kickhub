@@ -2,9 +2,13 @@
   (:require
    [compojure.core :as compojure :refer (GET POST defroutes)]
    (compojure [handler :as handler]
-              [route :as route])))
+              [route :as route])
+   [hiccup.page :as h]))
 
-(defn- index [] "Hello!")
+(defn- index []
+  (h/html5
+   (h/include-css "/css/kickhub.css")
+   [:body "Hello!"]))
 
 (defroutes app-routes
   (GET "/" [] (index))
