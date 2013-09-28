@@ -1,6 +1,7 @@
 (ns kickhub.core
   (:require
    [noir.util.middleware :as middleware]
+   [ring.util.response :as resp]
    [compojure.core :as compojure :refer (GET POST defroutes)]
    (compojure [handler :as handler]
               [route :as route])
@@ -58,10 +59,14 @@
                  :credential-fn
                  (partial creds/bcrypt-credential-fn load-users))]}))
 
+(defn- logout [req]
+  (friend/logout* (resp/redirect (str (:context req) "/"))))
+
 (defroutes app-routes
   (GET "/" [] (index))
   (GET "/sendmail/:user" [user] (send-email user))
   (GET "/login" req (login req))
+  (GET "/logout" req (logout req))
   (GET "/check" req
        (if-let [identity (friend/identity req)]
          (apply str "Logged in, with these roles: "

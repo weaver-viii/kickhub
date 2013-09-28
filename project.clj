@@ -9,4 +9,5 @@
    [com.cemerick/friend "0.1.5"]
    [compojure "1.1.5"]
    [com.draines/postal "1.10.3"]
-   [lib-noir "0.6.6"]])
+   [lib-noir "0.6.6"]
+   [ring-server "0.2.8"]])
