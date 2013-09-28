@@ -159,7 +159,7 @@
               (car/set (str "auth:" authid) guid)
               (car/set (str "user:" username ":uid") guid)
               (car/rpush "users" guid))
-       (send-email email (str (System/getenv "github_client_domain") "/" authid))
+       (send-email email (str (System/getenv "github_client_domain") "/activate/" authid))
        (str "Registered!  Thanks.<br/>"
             (format "<img src=\"http://www.gravatar.com/avatar/%s\" />"
                     (digest/md5 email))))))
