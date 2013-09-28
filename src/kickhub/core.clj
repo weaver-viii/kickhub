@@ -56,7 +56,7 @@
     [:h1 "KickHub"]
     [:h2 "Login"]
     [:form {:method "POST" :action "login"}
-     [:div "Email: " [:input {:type "text" :name "username"}]]
+     [:div "Username: " [:input {:type "text" :name "username"}]]
      [:div "Password: " [:input {:type "password" :name "password"}]]
      [:div [:input {:type "submit" :class "button" :value "Login"}]]]]))
 
@@ -67,10 +67,22 @@
    [:body
     [:h1 "You are now an active user."]]))
 
-(defn- load-users [username]
-  {:username username
-   :password (hash-bcrypt "password")
-   :roles #{::user}})
+(defn- get-username-uid
+  "Given her username, return the user's uid."
+  [username]
+  (wcar* (car/get (str "user:" username ":uid"))))
+
+(defn- get-uid-field
+  "Given a uid and a field (as a string), return the info."
+  [uid field]
+  (wcar* (car/hget (str "uid:" uid) field)))
+
+(defn- load-user
+  "Load a user from her username."
+  [username]
+  (let [uid (get-username-uid username)
+        password (get-uid-field uid "p")]
+    {:username username :password (hash-bcrypt password) :roles #{::users}}))
 
 (def gh-client-config
   {:client-id (System/getenv "github_client_id")
@@ -118,7 +130,7 @@
      (workflows/interactive-form
       :login-uri "/login"
       :credential-fn
-      (partial creds/bcrypt-credential-fn load-users))
+      (partial creds/bcrypt-credential-fn load-user))
      (oauth2/workflow
       {:client-config gh-client-config
        :uri-config friend-uri-config
