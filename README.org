@@ -1,1 +1,4 @@
-Time to start.
+* KickHub : boost donations to free software/content
+
+See http://bzg.fr/clojurecup-2013.html and especially [[http://bzg.fr/clojurecup-2013-the-problem.html][the problem]] I
+try to define/explore/tackle.
