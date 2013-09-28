@@ -1,6 +1,14 @@
-(ns kickhub.core)
+(ns kickhub.core
+  (:require
+   [compojure.core :as compojure :refer (GET POST defroutes)]
+   (compojure [handler :as handler]
+              [route :as route])))
 
-(defn ring-handler [request]
-  {:status 200
-    :headers {"Content-Type" "text/html"}
-    :body "Hello from Immutant!" })
+(defn- index [] "Hello!")
+
+(defroutes app-routes
+  (GET "/" [] (index))
+  (route/resources "/")
+  (route/not-found "Sorry, page not found."))
+
+(def ring-handler app-routes)
