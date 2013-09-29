@@ -20,13 +20,27 @@
 (defn- authenticated? [req]
   (get-in req [:session :cemerick.friend/identity]))
 
+;; Shamelessly taken from Swannodette enlive tutorial
+(def ^:dynamic *link-sel*
+  [[:.content (html/nth-of-type 1)] :> html/first-child])
+
+(html/defsnippet link-model "kickhub/html/index.html" *link-sel*
+  [{:keys [text href]}]
+  [:a] (html/do->
+        (html/content text)
+        (html/set-attr :href href)))
+
 (html/deftemplate indextpl "kickhub/html/index.html"
-  [{:keys [logged link pic add]}]
+  [{:keys [logged link pic add latest-projects]}]
   [:#login :a.logged] (html/do-> (html/content logged) (html/set-attr :href link))
   [:#login :a.addproject] (html/content add)
-  [:#login :img.pic] (html/set-attr :src pic))
+  [:#login :img.pic] (html/set-attr :src pic)
+  [:#new-projects]
+  (html/content
+   (map #(link-model {:text (:name %) :href (:name %)})
+        latest-projects)))
 
-(html/defsnippet link-model "kickhub/html/addproject.html" [:option]
+(html/defsnippet option-model "kickhub/html/addproject.html" [:option]
   [{:keys [text value]}]
   [:option] (html/do->
              (html/content text)
@@ -40,7 +54,7 @@
   [:#new-projects :form :#huid] (html/set-attr :value uid)
   [:#new-projects :form :select]
   (html/content
-   (map #(link-model {:text (:name %) :value (:name %)}) repos)))
+   (map #(option-model {:text (:name %) :value (:name %)}) repos)))
 
 (defn index [req]
   (if (authenticated? req)
@@ -54,9 +68,11 @@
       (when (empty? uid) (create-user username email))
       (indextpl {:logged "Log out" :link "/logout"
                  :pic (get-uid-field uid "picurl")
-                 :add "Add new project"}))
+                 :add "Add new project"
+                 :latest-projects (get-last-projects 10)}))
     (indextpl {:logged "Log in with github" :link "/github"
-               :pic "" :add ""})))
+               :pic "" :add ""
+               :latest-projects (get-last-projects 10)})))
 
 (defn add [req]
   (if (authenticated? req)
@@ -140,7 +156,7 @@
   (GET "/github" req (github req))
   (GET "/logout" req (logout req))
   ;; FIXME: temporary test
-  (GET "/projects" [] (pr-str (get-last-projects 1)))
+  (GET "/projects" [] (pr-str (get-last-projects 10)))
   (GET "/add" req (add req))
   (POST "/addproject" {params :params} (newproject params))
   (GET "/repos" req

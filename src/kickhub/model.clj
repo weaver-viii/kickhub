@@ -1,6 +1,7 @@
 (ns kickhub.model
   (:require
    [digest :as digest]
+   [clojure.walk :refer :all]
    [hiccup.page :as h]
    [hiccup.element :as e]
    [postal.core :as postal]
@@ -33,8 +34,10 @@
 ;;   (= (wcar* (car/get (str "pid:" pid ":auid"))) uid))
 
 (defn get-last-projects [count]
-  (let [plist (wcar* (car/lrange "timeline" 0 (- count)))]
-    (map #(wcar* (car/hgetall (str "pid:" %))) plist)))
+  (let [plist (take count (wcar* (car/lrange "timeline" 0 -1)))]
+    (map #(keywordize-keys
+           (apply array-map (wcar* (car/hgetall (str "pid:" %)))))
+         plist)))
 
 ;; (defn set-uid-field
 ;;   "Given a uid, a field (as a string) and value, set the field's value."
