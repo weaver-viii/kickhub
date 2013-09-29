@@ -21,22 +21,21 @@
   (get-in req [:session :cemerick.friend/identity]))
 
 (html/deftemplate indextpl "kickhub/html/index.html"
-  [ctxt]
-  [:div#login-menu]
-  (fn [match]
-    (if (authenticated? ctxt)
-      ((html/content "Logged in") match)
-      ((html/content "Log in with github") match))))
+  [{:keys [logged pic]}]
+  [:div#login :a.logged] (html/content logged)
+  [:div#login :img.pic] (html/set-attr :src pic))
 
 (defn index [req]
-  (when (authenticated? req)
+  (if (authenticated? req)
     (let [authentications
           (get-in req [:session :cemerick.friend/identity :authentications])
           access-token (:access_token (second (first authentications)))
           basic (github-user-info access-token)]
       (or (not (empty? (get-username-uid (:login basic))))
-          (create-user (:login basic) (:email basic)))))
-  (indextpl req))
+          (create-user (:login basic) (:email basic)))
+      (indextpl {:logged "Logged in"
+                 :pic (get-uid-field (get-username-uid (:login basic)) "picurl")}))
+    (indextpl {:logged "Log in with github" :pic ""})))
 
 (def gh-client-config
   {:client-id (System/getenv "github_client_id")

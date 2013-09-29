@@ -44,7 +44,7 @@
          (car/hmset
           (str "uid:" guid)
           "u" username "e" email
-          "pic" (format "<img src=\"http://www.gravatar.com/avatar/%s\" />"
+          "picurl" (str "http://www.gravatar.com/avatar/"
                         (digest/md5 email))
           "created" (java.util.Date.))
          (car/set (str "user:" username ":uid") guid)

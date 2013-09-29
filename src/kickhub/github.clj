@@ -26,7 +26,7 @@
     (assoc {}
       :username (:login infos)
       :email (:email infos)
-      :pic "pic" (str "http://www.gravatar.com/avatar/" (:gravatar_id infos)))))
+      :pic "picurl" (str "http://www.gravatar.com/avatar/" (:gravatar_id infos)))))
 
 (defn render-repos-page
   "Display user repos."

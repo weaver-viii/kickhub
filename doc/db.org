@@ -5,7 +5,7 @@
 |        |                 |        |                             |             |
 |--------+-----------------+--------+-----------------------------+-------------|
 | Done   | global:uid      | string | 1                           |             |
-| Done   | uid:1           | hash   | {u: p: e: picurl: updated:} |             |
+| Done   | uid:1           | hash   | {u: p: e: picurl: created:} |             |
 | Done   | user:bzg:uid    | string | 1                           |             |
 | Done   | users           | list   | {1, ...}                    |             |
 |--------+-----------------+--------+-----------------------------+-------------|

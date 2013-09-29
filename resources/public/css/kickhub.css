@@ -1,3 +1,41 @@
+@import url(http://fonts.googleapis.com/css?family=Inconsolata);
+
 body {
-    background-color: #eeeeee;
+    font-family: "Inconsolata";
+    font-size: 14pt;
+    background-color: white;
+    margin: 3em;
 }
+
+#logo {
+    position: fixed; 
+    top: .3em;
+    font-size: 400%;
+}
+
+#logo a {
+    text-decoration: none; 
+    color: black;
+}
+
+#logo a:hover {
+    text-decoration: none; 
+    color: blue;
+}
+
+#login {
+    position: fixed;
+    right: 2.5em;
+    top: 2.5em;
+}
+
+#new-projects {
+    position: absolute;
+    top: 8em;
+    left: 10em;
+}
+
+#new-projects ul {
+    list-style-type: none;
+}
+
