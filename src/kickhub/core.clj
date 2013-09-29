@@ -32,13 +32,15 @@
       (when (empty? uid) (create-user username email))
       (indextpl {:logged "Log out" :link "/logout"
                  :pic (get-uid-field uid "picurl")
-                 :add "New project"
-                 :latest-projects (get-last-projects 10)}))
+                 :add "New project" :msg ""
+                 :latest-projects (get-last-stream ["projects" "pid:"] 7)
+                 :latest-transactions (get-last-stream ["trans" "tid:"] 7)}))
     (indextpl {:logged "Log in with github" :link "/github"
-               :pic "" :add ""
-               :latest-projects (get-last-projects 10)})))
+               :pic "" :add "" :msg "Welcome on KickHub!"
+               :latest-projects (get-last-stream ["projects" "pid:"] 7)
+               :latest-transactions (get-last-stream ["trans" "tid:"] 7)})))
 
-(defn add [req]
+(defn- add [req]
   (if (authenticated? req)
     (let [authentications
           (get-in req [:session :cemerick.friend/identity :authentications])
@@ -55,7 +57,7 @@
                       :repos repos
                       :uid uid}))
     (addprojecttpl {:logged "Log in with github" :link "/github"
-                 :pic "" :add ""})))
+                    :pic "" :add ""})))
 
 (def gh-client-config
   {:client-id (System/getenv "github_client_id")
@@ -111,15 +113,29 @@
 (defn- logout [req]
   (friend/logout* (resp/redirect (str (:context req) "/"))))
 
-;; FIXME
-(defn- addprojectpage [{:keys [repo uid]}]
-  (if (create-project repo uid)
-    "Project created!"
-    "Project exists already."))
-
-;; FIXME
-(defn- supportprojectpage [{:keys [amount pid uid]}]
-  (pr-str (str amount " " pid " " uid)))
+(defn- addprojectpage [req]
+  (if (authenticated? req)
+    (let [params (clojure.walk/keywordize-keys (:form-params req))
+          repo (:repo params)
+          fuid (:uid params)]
+      (if (create-project repo fuid)
+        (resp/redirect (str (:context req) "/"))))
+    (resp/redirect (str (:context req) "/"))))
+        
+(defn- supportprojectpage [req]
+  (if (authenticated? req)
+    (let [params (clojure.walk/keywordize-keys (:form-params req))
+          amount (:amount params)
+          pid (:pid params)
+          uid (:uid params)
+          authentications
+          (get-in req [:session :cemerick.friend/identity :authentications])
+          access-token (:access_token (second (first authentications)))
+          basic (github-user-info access-token)
+          fuid (:login basic)]
+      (create-transaction amount pid uid fuid)
+      (resp/redirect (str (:context req) "/")))
+    (resp/redirect (str (:context req) "/"))))
 
 (defn- projectpage [pname]
   (let [pid (get-pname-pid pname)]
@@ -140,12 +156,12 @@
   (GET "/github" req (github req))
   (GET "/logout" req (logout req))
   (GET "/add" req (add req))
-  (POST "/addproject" {params :params} (addprojectpage params))
-  (POST "/support" {params :params} (supportprojectpage params))
+  (POST "/addproject" req (addprojectpage req))
+  (POST "/support" req (supportprojectpage req))
   (GET "/about" [] (abouttpl))
   (GET "/roadmap" [] (roadmaptpl))
+  (GET "/test" req (pr-str req))
   (route/resources "/")
-  ;; FIXME: better 404 page
   (route/not-found (notfoundtpl)))
 
 (def ring-handler

@@ -28,21 +28,20 @@
   [uid]
   (wcar* (car/hgetall (str "uid:" uid))))
 
-(defn get-pid-all
-  "Given a pid, return all info about it."
-  [pid]
-  (wcar* (car/hgetall (str "pid:" pid))))
-
 (defn get-uid-field
   "Given a uid and a field (as a string), return the info."
   [uid field]
   (wcar* (car/hget (str "uid:" uid) field)))
 
-;; FIXME: Not used yet
-;; (defn get-pid-field
-;;   "Given a pid and a field (as a string), return the info."
-;;   [pid field]
-;;   (wcar* (car/hget (str "pid:" pid) field)))
+(defn get-pid-all
+  "Given a pid, return all info about it."
+  [pid]
+  (wcar* (car/hgetall (str "pid:" pid))))
+
+(defn get-pid-field
+  "Given a pid and a field (as a string), return the info."
+  [pid field]
+  (wcar* (car/hget (str "pid:" pid) field)))
 
 (defn filter-out-active-repos
   "Filter out repos that user uid has already activated"
@@ -61,21 +60,16 @@
   `(keywordize-keys
     (apply array-map ~@body)))
 
-(defn get-last-projects [count]
-  (let [plist (reverse (take count (wcar* (car/lrange "projects" 0 -1))))]
+(defn get-last-stream [[kind id] count]
+  (let [plist (reverse (take count (wcar* (car/lrange kind 0 -1))))]
     (map #(keywordize-array-mapize
-           (wcar* (car/hgetall (str "pid:" %))))
+           (wcar* (car/hgetall (str id %))))
          plist)))
 
 (defn get-uid-projects [uid]
   (map #(keywordize-array-mapize
          (wcar* (car/hgetall (str "pid:" %))))
        (wcar* (car/smembers (str "uid:" uid ":apid")))))
-
-;; (defn set-uid-field
-;;   "Given a uid, a field (as a string) and value, set the field's value."
-;;   [uid field value]
-;;   (wcar* (car/hset (str "uid:" uid) field value)))
 
 (defn send-email [email]
   (postal/send-message
@@ -90,7 +84,7 @@
          "Learn more about the why and the how:\n"
          "http://bzg.fr/clojurecup-2013-the-problem.html\n"
          "http://kickhub.clojurecup.com\n\n"
-         "... and don't forget to vote for us!\n"
+         "... and don't forget to vote for this project :)\n"
          "http://clojurecup.com/app.html?app=kickhub\n\n-- \nBastien")}))
 
 (defn create-user [username email]
@@ -122,3 +116,18 @@
              (car/set (str "pid:" pid ":auid") uid)
              (car/sadd (str "uid:" uid ":apid") pid)
              (car/set (str "project:" repo ":pid") pid)))))
+
+(defn create-transaction
+  "Create a new project."
+  [amount pid uid fuid]
+  (let [tid (wcar* (car/incr "global:tid"))]
+    (wcar* (car/hmset
+            (str "tid:" tid)
+            "created" (java.util.Date.)
+            "by" fuid
+            "to" uid
+            "for" pid
+            "amount" amount
+            "confirmed" "0")
+           (car/rpush "trans" tid)
+           (car/set (str "tid:" tid ":auid") fuid))))

@@ -1,12 +1,21 @@
-@import url(http://fonts.googleapis.com/css?family=Inconsolata);
+@import url(http://fonts.googleapis.com/css?family=Brawler);
 
 html {
     margin: 0; 
     padding: 0;
 }
 
+#pname, #githublogin {
+    font-weight: 800;
+    font-size: 140%;
+}
+
+#khsince {
+    font-style: italic;
+}
+
 body {
-    font-family: "Inconsolata";
+    font-family: "Brawler";
     font-size: 15pt;
     background-color: white;
     margin: 3em;
@@ -16,6 +25,33 @@ body {
     position: fixed;
     bottom: 1em;
     right: 1em;
+    background-color: #b40404;
+    color: white;
+    border-radius: 4px;
+    padding: 8px;
+}
+
+p.msg {
+    /* position: absolute; */
+    margin: auto;
+    width: 20%;
+    text-align: center;
+    padding: 2em;
+    /* background-color: #eee; */
+    border-radius: 8px;
+}
+
+#vote a {
+    color:white;
+    text-decoration: none;
+}
+
+#vote:hover {
+    background-color: #ccc; 
+}
+
+#vote a:hover {
+    color: black; 
 }
 
 a {
@@ -72,9 +108,8 @@ select, input {
     border: 1px solid grey;
 }
 
-#new-projects, #list-projects, #active-projects, #about {
+#new-projects, #new-projects2, #list-projects, #active-projects, #about {
     margin: auto;
-    margin-top: 8em;
     width: 75%;
     background-color: white;
     text-align: left;

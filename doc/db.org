@@ -10,11 +10,16 @@
 | Done   | users            | list   | {1, ...}                    |                                         |
 | Done   | uid:1:apid       | set    | {1, 2}                      | set of projects for which user is admin |
 |--------+------------------+--------+-----------------------------+-----------------------------------------|
-| Done   | global:pid       | string | 1                           |                                         |
+| Done   | global:pid       | string | 1                           | project                                 |
 | Done   | projects         | list   | {1, 2}                      |                                         |
 | Done   | project:test:pid | string | 1                           | get the pid from project's name         |
 | Done   | pid:1            | hash   | {name: created: by:}        |                                         |
 | Done   | pid:1:auid       | string | 1                           | admin uid for pid                       |
+|--------+------------------+--------+-----------------------------+-----------------------------------------|
+| Done   | global:tid       | string | 1                           | transaction                             |
+| Done   | transactions     | list   | {1, 2}                      |                                         |
+| Done   | tid:1            | hash   | {created: by: amount:}      |                                         |
+| Done   | tid:1:auid       | string | 1                           | author uid of transaction tid           |
 |--------+------------------+--------+-----------------------------+-----------------------------------------|
 |        | uid:1:followers  | set    | {2}                         |                                         |
 |        | uid:2:following  | set    | {1}                         |                                         |
