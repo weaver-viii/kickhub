@@ -1,16 +1,30 @@
 @import url(http://fonts.googleapis.com/css?family=Inconsolata);
+@import url(http://fonts.googleapis.com/css?family=Raleway);
+
+html {
+    margin: 0; 
+    padding: 0;
+}
 
 body {
     font-family: "Inconsolata";
-    font-size: 14pt;
+    font-size: 15pt;
     background-color: white;
     margin: 3em;
 }
 
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
 #logo {
     position: fixed; 
-    top: .3em;
-    font-size: 400%;
+    top: .2em;
+    font-size: 500%;
 }
 
 #logo a {
@@ -25,16 +39,37 @@ body {
 
 #login {
     position: fixed;
-    right: 2.5em;
-    top: 2.5em;
+    right: 2em;
+    top: 2em;
+    text-align: right;
 }
 
-#new-projects, #list-projects, #active-projects {
-    position: absolute;
-    top: 8em;
-    left: 10em;
+form {
+    margin-top: 2em;
+}
+
+select, input {
+    color: black;
+    font-size: 120%;
+    padding: .3em;
+    background-color: #eee;
+    border: 1px solid grey;
+}
+
+#new-projects, #list-projects, #active-projects, #about {
+    margin: auto;
+    margin-top: 8em;
+    width: 75%;
+    background-color: white;
+    text-align: left;
+}
+
+#about {
+    font-family: "Raleway";
+    text-align: justify;
 }
 
 li {
     list-style-type: none; 
+    margin: .3em;
 }

@@ -32,7 +32,7 @@
       (when (empty? uid) (create-user username email))
       (indextpl {:logged "Log out" :link "/logout"
                  :pic (get-uid-field uid "picurl")
-                 :add "Add new project"
+                 :add "New project"
                  :latest-projects (get-last-projects 10)}))
     (indextpl {:logged "Log in with github" :link "/github"
                :pic "" :add ""
@@ -51,7 +51,7 @@
                  (github-user-repos access-token) uid)]
       (addprojecttpl {:logged "Log out" :link "/logout"
                       :pic (get-uid-field uid "picurl")
-                      :add "Add new project"
+                      :add "New project"
                       :repos repos
                       :uid uid}))
     (addprojecttpl {:logged "Log in with github" :link "/github"
@@ -136,7 +136,8 @@
   (GET "/logout" req (logout req))
   (GET "/add" req (add req))
   (POST "/addproject" {params :params} (addprojectpage params))
-  (GET "/about" req (abouttpl))
+  (GET "/about" [] (abouttpl))
+  (GET "/roadmap" [] (roadmaptpl))
   (route/resources "/")
   ;; FIXME: better 404 page
   (route/not-found (notfoundtpl)))

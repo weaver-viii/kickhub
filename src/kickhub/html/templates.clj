@@ -57,6 +57,6 @@
   [:#login :#khsince] (html/content (str "On KickHub since: " (str created))))
 
 (html/deftemplate abouttpl "kickhub/html/about.html" [])
-
+(html/deftemplate roadmaptpl "kickhub/html/roadmap.html" [])
 (html/deftemplate notfoundtpl "kickhub/html/notfound.html" [])
 
