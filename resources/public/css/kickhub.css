@@ -12,6 +12,12 @@ body {
     margin: 3em;
 }
 
+#vote {
+    position: fixed;
+    bottom: 1em;
+    right: 1em;
+}
+
 a {
     text-decoration: none;
 }
