@@ -20,7 +20,7 @@
 (defn- authenticated? [req]
   (get-in req [:session :cemerick.friend/identity]))
 
-(html/deftemplate index "kickhub/html/index.html"
+(html/deftemplate indextpl "kickhub/html/index.html"
   [ctxt]
   [:div#login-menu]
   (fn [match]
@@ -31,6 +31,15 @@
      ((html/content "Logged in with github") match)
      :else
      ((html/content "Please login with your account or github") match))))
+
+(defn index [req]
+  (when (and (authenticated? req) (not (logged-in-normally? req)))
+    (let [authentications
+          (get-in req [:session :cemerick.friend/identity :authentications])
+          access-token (:access_token (second (first authentications)))
+          basic (github-user-info access-token)]
+      (create-user (:login basic) (:email basic) "" "isactive" "nosend")))
+  (indextpl req))
 
 (defn- login
   "Display the login page."
@@ -124,7 +133,7 @@
         [:div "Password: " [:input {:type "password" :name "password"}]]
         [:div [:input {:type "submit" :class "button" :value "Register"}]]]]))
   ([{:keys [username email password]}]
-     (create-user username email password)))
+     (create-user username email password nil nil)))
 
 (defroutes app-routes
   (GET "/" req (index req))

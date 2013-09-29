@@ -44,7 +44,7 @@
                activation-link)})
   "Email sent!")
 
-(defn create-user [username email password]
+(defn create-user [username email password isactive nosend]
   (let [guid (wcar* (car/incr "global:uid"))
         authid (digest/md5 (str (System/currentTimeMillis) username))]
        (wcar*
@@ -54,12 +54,13 @@
          "pic" (format "<img src=\"http://www.gravatar.com/avatar/%s\" />"
                        (digest/md5 email))
          "updated" (java.util.Date.)
-         "active" 0)
+         "active" (if isactive 1 0))
         (car/set (str "uid:" guid ":auth") authid)
         (car/set (str "auth:" authid) guid)
         (car/set (str "user:" username ":uid") guid)
         (car/rpush "users" guid))
-       (send-email email (str (System/getenv "github_client_domain") "/activate/" authid))
+       (if-not nosend
+         (send-email email (str (System/getenv "github_client_domain") "/activate/" authid)))
        (str "Registered!  Thanks.<br/>"
             (format "<img src=\"http://www.gravatar.com/avatar/%s\" />"
                     (digest/md5 email)))))

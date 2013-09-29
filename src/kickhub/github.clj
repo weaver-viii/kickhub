@@ -19,6 +19,15 @@
   [access-token]
   (github-api-response access-token "/user"))
 
+(defn github-user-basic-info
+  "Get user Github info."
+  [access-token]
+  (let [infos (github-api-response access-token "/user")]
+    (assoc {}
+      :username (:login infos)
+      :email (:email infos)
+      :pic "pic" (str "http://www.gravatar.com/avatar/" (:gravatar_id infos)))))
+
 (defn render-repos-page
   "Display user repos."
   [request]
