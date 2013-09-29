@@ -56,6 +56,8 @@
   (html/content
    (map #(option-model {:text (:name %) :value (:name %)}) repos)))
 
+(html/deftemplate about "kickhub/html/about.html" [])
+
 (defn index [req]
   (if (authenticated? req)
     (let [authentications
@@ -158,6 +160,7 @@
   ;; FIXME: temporary test
   (GET "/projects" [] (pr-str (get-last-projects 10)))
   (GET "/add" req (add req))
+  (GET "/about" req (about))
   (POST "/addproject" {params :params} (newproject params))
   (GET "/repos" req
        (friend/authorize #{:kickhub.core/user}
