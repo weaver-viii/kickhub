@@ -138,9 +138,6 @@
   (GET "/repos" req
        (friend/authorize #{:kickhub.core/user}
                          (render-repos-page req)))
-  (GET "/emails" req
-       (friend/authorize #{:kickhub.core/user}
-                         (render-emails-page req)))
   (GET "/user" req
        (friend/authorize #{:kickhub.core/user}
                          (render-user-page req)))
