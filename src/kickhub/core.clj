@@ -30,9 +30,11 @@
     (let [authentications
           (get-in req [:session :cemerick.friend/identity :authentications])
           access-token (:access_token (second (first authentications)))
-          basic (github-user-info access-token)]
-      (or (not (empty? (get-username-uid (:login basic))))
-          (create-user (:login basic) (:email basic)))
+          basic (github-user-info access-token)
+          username (:login basic)
+          email (:email basic)
+          uid (get-username-uid username)]
+      (when (empty? uid) (create-user username email))
       (indextpl {:logged "Logged in"
                  :pic (get-uid-field (get-username-uid (:login basic)) "picurl")}))
     (indextpl {:logged "Log in with github" :pic ""})))

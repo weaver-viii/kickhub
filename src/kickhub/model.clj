@@ -22,6 +22,11 @@
   [uid field]
   (wcar* (car/hget (str "uid:" uid) field)))
 
+;; (defn set-uid-field
+;;   "Given a uid, a field (as a string) and value, set the field's value."
+;;   [uid field value]
+;;   (wcar* (car/hset (str "uid:" uid) field value)))
+
 (defn send-email [email]
   (postal/send-message
    ^{:host "localhost"
