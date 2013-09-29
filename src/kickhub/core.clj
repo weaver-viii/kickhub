@@ -117,10 +117,15 @@
     "Project created!"
     "Project exists already."))
 
+;; FIXME
+(defn- supportprojectpage [{:keys [amount pid uid]}]
+  (pr-str (str amount " " pid " " uid)))
+
 (defn- projectpage [pname]
   (let [pid (get-pname-pid pname)]
     (projecttpl
-     (keywordize-array-mapize (get-pid-all pid)))))
+     (assoc (keywordize-array-mapize (get-pid-all pid))
+       :pid pid))))
 
 (defn- userpage [uname]
   (let [uid (get-username-uid uname)
@@ -136,6 +141,7 @@
   (GET "/logout" req (logout req))
   (GET "/add" req (add req))
   (POST "/addproject" {params :params} (addprojectpage params))
+  (POST "/support" {params :params} (supportprojectpage params))
   (GET "/about" [] (abouttpl))
   (GET "/roadmap" [] (roadmaptpl))
   (route/resources "/")

@@ -62,7 +62,7 @@
     (apply array-map ~@body)))
 
 (defn get-last-projects [count]
-  (let [plist (take count (wcar* (car/lrange "projects" 0 -1)))]
+  (let [plist (reverse (take count (wcar* (car/lrange "projects" 0 -1))))]
     (map #(keywordize-array-mapize
            (wcar* (car/hgetall (str "pid:" %))))
          plist)))

@@ -7,7 +7,16 @@
 (def ^:dynamic *link-sel*
   [[:.content (html/nth-of-type 1)] :> html/first-child])
 
-(html/defsnippet link-model "kickhub/html/index.html" *link-sel*
+(html/defsnippet link-model-index "kickhub/html/index.html" *link-sel*
+  [{:keys [by uhref project phref]}]
+  [:a#user] (html/do->
+             (html/content by)
+             (html/set-attr :href uhref))
+  [:a#project] (html/do->
+                (html/content project)
+                (html/set-attr :href phref)))
+
+(html/defsnippet link-model-user "kickhub/html/user.html" *link-sel*
   [{:keys [text href]}]
   [:a] (html/do->
         (html/content text)
@@ -20,9 +29,11 @@
   [:#login :img.pic] (html/set-attr :src pic)
   [:#new-projects]
   (html/content
-   (map #(link-model
-          {:text (:name %)
-           :href (str "user/" (get-uid-field (:by %) "u") "/" (:name %))})
+   (map #(link-model-index
+          {:by (get-uid-field (:by %) "u")
+           :uhref (str "user/" (get-uid-field (:by %) "u"))
+           :project (:name %)
+           :phref (str "user/" (get-uid-field (:by %) "u") "/" (:name %))})
         latest-projects)))
 
 (html/defsnippet option-model "kickhub/html/addproject.html" [:option]
@@ -48,13 +59,16 @@
   [:#login :#khsince] (html/content (str "On KickHub since: " (str created)))
   [:#active-projects] 
   (html/content
-   (map #(link-model {:text (:name %) :href (str "/user/" u "/" (:name %))})
-        user-projects)))
+   (map #(link-model-user {:text (:name %) :href (str "/user/" u "/" (:name %))})
+        (reverse user-projects))))
 
 (html/deftemplate projecttpl "kickhub/html/project.html"
-  [{:keys [name created]}]
+  [{:keys [name created by pid]}]
   [:#login :#pname] (html/content (str "Project name: " name))
-  [:#login :#khsince] (html/content (str "On KickHub since: " (str created))))
+  [:#login :#khsince] (html/content (str "On KickHub since: " (str created)))
+  [:#login :#by] (html/content (str "By: " (get-uid-field by "u")))
+  [:#new-projects :form :input#puid] (html/set-attr :value pid)
+  [:#new-projects :form :input#huid] (html/set-attr :value (get-uid-field by "u")))
 
 (html/deftemplate abouttpl "kickhub/html/about.html" [])
 (html/deftemplate roadmaptpl "kickhub/html/roadmap.html" [])

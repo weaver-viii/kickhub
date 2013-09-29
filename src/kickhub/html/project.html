@@ -16,8 +16,26 @@
   <ul class="pinfos">
     <li id="pname">Github login: </li>
     <li id="khsince">On KickHub since: </li>
+    <li id="by">By: </li>
   </ul>
 </div>
+
+<div id="new-projects">
+
+  <p>Support this project!</p>
+
+  <form action="/support" method="post">
+    <select name="amount">
+      <option value="5">5</option>
+      <option value="10">10</option>
+      <option value="30">30</option>
+    </select>
+    <input id="puid" type="hidden" name="pid" value=""/>
+    <input id="huid" type="hidden" name="uid" value=""/>
+    <input type="submit" value="Go" />
+  </form>
+</div>
+
 
 </body>
 </html>
