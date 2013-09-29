@@ -29,13 +29,12 @@ body {
     top: 2.5em;
 }
 
-#new-projects {
+#new-projects, #list-projects {
     position: absolute;
     top: 8em;
     left: 10em;
 }
 
-#new-projects ul {
-    list-style-type: none;
+ul { 
+    list-style-type: none; 
 }
-

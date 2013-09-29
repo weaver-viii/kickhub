@@ -19,9 +19,13 @@
 </div>
 
 <div id="new-projects">
-  <ul class="content">
-    <li><a href="#">Project A</a></li>
-  </ul>
+  <form action="addproject" id="reposform" method="post">
+    <select name="repo">
+      <option value=""></option>
+    </select>
+    <input id="huid" type="hidden" name="uid" value=""/>
+    <input type="submit" />
+  </form>
 </div>
 
 </body>

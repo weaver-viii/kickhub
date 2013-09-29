@@ -21,9 +21,26 @@
   (get-in req [:session :cemerick.friend/identity]))
 
 (html/deftemplate indextpl "kickhub/html/index.html"
-  [{:keys [logged pic]}]
-  [:div#login :a.logged] (html/content logged)
-  [:div#login :img.pic] (html/set-attr :src pic))
+  [{:keys [logged link pic add]}]
+  [:#login :a.logged] (html/do-> (html/content logged) (html/set-attr :href link))
+  [:#login :a.addproject] (html/content add)
+  [:#login :img.pic] (html/set-attr :src pic))
+
+(html/defsnippet link-model "kickhub/html/addproject.html" [:option]
+  [{:keys [text value]}]
+  [:option] (html/do->
+             (html/content text)
+             (html/set-attr :value value)))
+
+(html/deftemplate addproject "kickhub/html/addproject.html"
+  [{:keys [logged link pic add repos uid]}]
+  [:#login :a.logged] (html/do-> (html/content logged) (html/set-attr :href link))
+  [:#login :a.addproject] (html/content add)
+  [:#login :img.pic] (html/set-attr :src pic)
+  [:#new-projects :form :#huid] (html/set-attr :value uid)
+  [:#new-projects :form :select]
+  (html/content
+   (map #(link-model {:text (:name %) :value (:name %)}) repos)))
 
 (defn index [req]
   (if (authenticated? req)
@@ -35,9 +52,29 @@
           email (:email basic)
           uid (get-username-uid username)]
       (when (empty? uid) (create-user username email))
-      (indextpl {:logged "Logged in"
-                 :pic (get-uid-field (get-username-uid (:login basic)) "picurl")}))
-    (indextpl {:logged "Log in with github" :pic ""})))
+      (indextpl {:logged "Log out" :link "/logout"
+                 :pic (get-uid-field uid "picurl")
+                 :add "Add new project"}))
+    (indextpl {:logged "Log in with github" :link "/github"
+               :pic "" :add ""})))
+
+(defn add [req]
+  (if (authenticated? req)
+    (let [authentications
+          (get-in req [:session :cemerick.friend/identity :authentications])
+          access-token (:access_token (second (first authentications)))
+          basic (github-user-info access-token)
+          username (:login basic)
+          email (:email basic)
+          uid (get-username-uid username)
+          repos (github-user-repos access-token)]
+      (addproject {:logged "Log out" :link "/logout"
+                   :pic (get-uid-field uid "picurl")
+                   :add "Add new project"
+                   :repos repos
+                   :uid uid}))
+    (addproject {:logged "Log in with github" :link "/github"
+                 :pic "" :add ""})))
 
 (def gh-client-config
   {:client-id (System/getenv "github_client_id")
@@ -93,10 +130,15 @@
 (defn- logout [req]
   (friend/logout* (resp/redirect (str (:context req) "/"))))
 
+(defn- newproject [{:keys [repo uid]}]
+  (pr-str (str repo "\n" uid)))
+
 (defroutes app-routes
   (GET "/" req (index req))
   (GET "/github" req (github req))
   (GET "/logout" req (logout req))
+  (GET "/add" req (add req))
+  (POST "/addproject" {params :params} (newproject params))
   (GET "/repos" req
        (friend/authorize #{:kickhub.core/user}
                          (render-repos-page req)))
