@@ -57,6 +57,7 @@
    (map #(option-model {:text (:name %) :value (:name %)}) repos)))
 
 (html/deftemplate about "kickhub/html/about.html" [])
+(html/deftemplate notfound "kickhub/html/notfound.html" [])
 
 (defn index [req]
   (if (authenticated? req)
@@ -175,7 +176,7 @@
          "You are an anonymous user."))
   (route/resources "/")
   ;; FIXME: better 404 page
-  (route/not-found "Sorry, page not found."))
+  (route/not-found (notfound)))
 
 (def ring-handler
   (middleware/app-handler
