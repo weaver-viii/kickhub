@@ -92,7 +92,7 @@
   (friend/authenticate
    handler
    {:allow-anon? true
-    :default-landing-uri "/check"
+    :default-landing-uri "/"
     :workflows
     [(workflows/interactive-form
       :login-uri "/login"
