@@ -87,7 +87,7 @@
     :body
     (str "Welcome to KickHub!\n\n"
          "KickHub aims at boosting donations to free software/content.\n\n"
-         "Learn more about the *why and the *how*:\n"
+         "Learn more about the why and the how:\n"
          "http://bzg.fr/clojurecup-2013-the-problem.html\n"
          "http://kickhub.clojurecup.com\n\n"
          "... and don't forget to vote for us!\n"
