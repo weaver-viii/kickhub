@@ -2,50 +2,35 @@
   (:require
    [noir.util.middleware :as middleware]
    [ring.util.response :as resp]
+   [kickhub.model :refer :all]
+   [kickhub.github :refer :all]
    [ring.util.codec :as codec]
    [compojure.core :as compojure :refer (GET POST defroutes)]
    (compojure [handler :as handler]
               [route :as route])
    [hiccup.page :as h]
    [hiccup.element :as e]
-   [digest :as digest]
-   [postal.core :as postal]
    [cemerick.friend :as friend]
    (cemerick.friend [workflows :as workflows]
                     [credentials :as creds])
    [cemerick.friend.credentials :refer (hash-bcrypt)]
    [friend-oauth2.workflow :as oauth2]
-   [taoensso.carmine :as car]))
+   [net.cgrand.enlive-html :as html]))
 
-(def server1-conn
-  {:pool {} :spec {:uri "redis://localhost:6379/"}})
+(defn- authenticated? [req]
+  (get-in req [:session :cemerick.friend/identity]))
 
-(defmacro wcar* [& body]
-  `(car/wcar server1-conn ~@body))
-
-(defn- index [req]
-  (let [identity (friend/identity req)
-        msg (if identity
-              (apply str "You are logged in, with these roles: "
-                     (-> identity friend/current-authentication :roles)
-                     "<br/>"
-                     "<a href=\"/github\">Associate</a> your github account")
-              "Please <a href=\"/login\">log in</a>")]
-    (h/html5
-     (h/include-css "/css/kickhub.css")
-     [:body "Hello!"
-      [:p "Login with"]])))
-
-(defn- send-email [email activation-link]
-  (postal/send-message
-   ^{:host "localhost"
-     :port 25}
-   {:from "Bastien <bzg@bzg.fr>"
-    :to email
-    :subject "Thanks for testing KickHub!"
-    :body (str "Please click on the link below to activate your account:\n"
-               activation-link)})
-  "Email sent!")
+(html/deftemplate index "kickhub/html/index.html"
+  [ctxt]
+  [:div#login-menu]
+  (fn [match]
+    (cond
+     (and (authenticated? ctxt) (logged-in-normally? ctxt))
+     ((html/content "Logged in normally") match)
+     (authenticated? ctxt)
+     ((html/content "Logged in with github") match)
+     :else
+     ((html/content "Please login with your account or github") match))))
 
 (defn- login
   "Display the login page."
@@ -60,29 +45,12 @@
      [:div "Password: " [:input {:type "password" :name "password"}]]
      [:div [:input {:type "submit" :class "button" :value "Login"}]]]]))
 
-(defn- activate-user [authid]
-  (let [guid (wcar* (car/get (str "auth:" authid)))]
-    (wcar* (car/hset (str "uid:" guid) "active" 1)))
-  (h/html5
-   [:body
-    [:h1 "You are now an active user."]]))
-
-(defn- get-username-uid
-  "Given her username, return the user's uid."
-  [username]
-  (wcar* (car/get (str "user:" username ":uid"))))
-
-(defn- get-uid-field
-  "Given a uid and a field (as a string), return the info."
-  [uid field]
-  (wcar* (car/hget (str "uid:" uid) field)))
-
 (defn- load-user
   "Load a user from her username."
   [username]
   (let [uid (get-username-uid username)
         password (get-uid-field uid "p")]
-    {:username username :password (hash-bcrypt password) :roles #{::users}}))
+    {:username username :password (hash-bcrypt password) :roles #{::user}}))
 
 (def gh-client-config
   {:client-id (System/getenv "github_client_id")
@@ -124,10 +92,9 @@
   (friend/authenticate
    handler
    {:allow-anon? true
-    :default-landing-uri "/"
+    :default-landing-uri "/check"
     :workflows
-    [
-     (workflows/interactive-form
+    [(workflows/interactive-form
       :login-uri "/login"
       :credential-fn
       (partial creds/bcrypt-credential-fn load-user))
@@ -136,14 +103,13 @@
        :uri-config friend-uri-config
        :login-uri "/github"
        :access-token-parsefn access-token-parsefn
-       :config-auth friend-config-auth})
-     ]}))
+       :config-auth friend-config-auth})]}))
 
 (defn- logout [req]
   (friend/logout* (resp/redirect (str (:context req) "/"))))
 
 (defn- github [req]
-  "Ça marche!")
+  "It works!")
 
 (defn- register
   "Register a new user account."
@@ -158,23 +124,7 @@
         [:div "Password: " [:input {:type "password" :name "password"}]]
         [:div [:input {:type "submit" :class "button" :value "Register"}]]]]))
   ([{:keys [username email password]}]
-     (let [guid (wcar* (car/incr "global:uid"))
-           authid (digest/md5 (str (System/currentTimeMillis) username))]
-       (wcar* (car/hmset
-               (str "uid:" guid)
-               "u" username "p" password "e" email
-               "pic" (format "<img src=\"http://www.gravatar.com/avatar/%s\" />"
-                             (digest/md5 email))
-               "updated" (java.util.Date.)
-               "active" 0)
-              (car/set (str "uid:" guid ":auth") authid)
-              (car/set (str "auth:" authid) guid)
-              (car/set (str "user:" username ":uid") guid)
-              (car/rpush "users" guid))
-       (send-email email (str (System/getenv "github_client_domain") "/activate/" authid))
-       (str "Registered!  Thanks.<br/>"
-            (format "<img src=\"http://www.gravatar.com/avatar/%s\" />"
-                    (digest/md5 email))))))
+     (create-user username email password)))
 
 (defroutes app-routes
   (GET "/" req (index req))
@@ -185,6 +135,15 @@
   (POST "/register" {params :params} (register params))
   (GET "/activate/:authid" [authid] (activate-user authid))
   (GET "/logout" req (logout req))
+  (GET "/repos" req
+       (friend/authorize #{:kickhub.core/user}
+                         (render-repos-page req)))
+  (GET "/emails" req
+       (friend/authorize #{:kickhub.core/user}
+                         (render-emails-page req)))
+  (GET "/user" req
+       (friend/authorize #{:kickhub.core/user}
+                         (render-user-page req)))
   (GET "/check" req
        (if-let [identity (friend/identity req)]
          (apply str "Logged in, with these roles: "
