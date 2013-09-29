@@ -10,21 +10,17 @@
     (json/parse-string (:body (http/get url {:accept :json})) true)))
 
 (defn github-user-repos
-  "Github API call for the current authenticated users
-repository list."
+  "Get user github repos."
   [access-token]
   (github-api-response access-token "/user/repos"))
 
 (defn github-user-info
-  "Github API call for the current authenticated users
-repository list."
+  "Get user Github info."
   [access-token]
   (github-api-response access-token "/user"))
 
 (defn render-repos-page
-  "Show a list of the current users github repositories.
-Do this by calling the github api with the OAuth2 access token
-that the friend authentication has retrieved."
+  "Display user repos."
   [request]
   (let [authentications
         (get-in request [:session :cemerick.friend/identity :authentications])
@@ -33,9 +29,7 @@ that the friend authentication has retrieved."
     (str (vec (map :name repos-response)))))
 
 (defn render-user-page
-  "Show a list of the current users github repositories.
-Do this by calling the github api with the OAuth2 access token
-that the friend authentication has retrieved."
+  "Display user infos"
   [request]
   (let [authentications
         (get-in request [:session :cemerick.friend/identity :authentications])
