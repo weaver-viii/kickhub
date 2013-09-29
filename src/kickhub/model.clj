@@ -14,9 +14,24 @@
   `(car/wcar server1-conn ~@body))
 
 (defn get-username-uid
-  "Given her username, return the user's uid."
+  "Given a username, return the corresponding uid."
   [username]
   (wcar* (car/get (str "user:" username ":uid"))))
+
+(defn get-pname-pid
+  "Given a project's name, return the corresponding pid."
+  [pname]
+  (wcar* (car/get (str "project:" pname ":pid"))))
+
+(defn get-uid-all
+  "Given a uid, return all info about her."
+  [uid]
+  (wcar* (car/hgetall (str "uid:" uid))))
+
+(defn get-pid-all
+  "Given a pid, return all info about it."
+  [pid]
+  (wcar* (car/hgetall (str "pid:" pid))))
 
 (defn get-uid-field
   "Given a uid and a field (as a string), return the info."
@@ -29,15 +44,33 @@
 ;;   [pid field]
 ;;   (wcar* (car/hget (str "pid:" pid) field)))
 
-;; FIXME: Not used yet
-;; (defn uid-admin-of-pid? [uid pid]
-;;   (= (wcar* (car/get (str "pid:" pid ":auid"))) uid))
+(defn filter-out-active-repos
+  "Filter out repos that user uid has already activated"
+  [repos uid]
+  (filter #(not (=
+            (wcar* (car/sismember
+                    (str "uid:" uid ":apid")
+                    (get-pname-pid (:name %))))
+            1))
+          repos))
+
+(defn- uid-admin-of-pid? [uid pid]
+  (= (wcar* (car/get (str "pid:" pid ":auid"))) uid))
+
+(defmacro keywordize-array-mapize [& body]
+  `(keywordize-keys
+    (apply array-map ~@body)))
 
 (defn get-last-projects [count]
-  (let [plist (take count (wcar* (car/lrange "timeline" 0 -1)))]
-    (map #(keywordize-keys
-           (apply array-map (wcar* (car/hgetall (str "pid:" %)))))
+  (let [plist (take count (wcar* (car/lrange "projects" 0 -1)))]
+    (map #(keywordize-array-mapize
+           (wcar* (car/hgetall (str "pid:" %))))
          plist)))
+
+(defn get-uid-projects [uid]
+  (map #(keywordize-array-mapize
+         (wcar* (car/hgetall (str "pid:" %))))
+       (wcar* (car/smembers (str "uid:" uid ":apid")))))
 
 ;; (defn set-uid-field
 ;;   "Given a uid, a field (as a string) and value, set the field's value."
@@ -73,13 +106,19 @@
          (car/rpush "users" guid))
         (send-email email))))
 
+(defn- project-by-uid-exists? [repo uid]
+  (uid-admin-of-pid? uid (get-pname-pid repo)))
+
 (defn create-project
   "Create a new project."
   [repo uid]
-  (let [pid (wcar* (car/incr "global:pid"))]
-    (wcar* (car/hmset
-            (str "pid:" pid)
-            "name" repo "created" (java.util.Date.))
-           (car/rpush "timeline" pid)
-           (car/set (str "pid:" pid ":auid") uid)
-           (car/sadd (str "uid:" uid ":apid") pid))))
+  (when-not (project-by-uid-exists? repo uid)
+    (let [pid (wcar* (car/incr "global:pid"))]
+      (wcar* (car/hmset
+              (str "pid:" pid)
+              "name" repo "created" (java.util.Date.)
+              "by" uid)
+             (car/rpush "projects" pid)
+             (car/set (str "pid:" pid ":auid") uid)
+             (car/sadd (str "uid:" uid ":apid") pid)
+             (car/set (str "project:" repo ":pid") pid)))))

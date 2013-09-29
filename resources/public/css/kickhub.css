@@ -29,7 +29,7 @@ body {
     top: 2.5em;
 }
 
-#new-projects, #list-projects {
+#new-projects, #list-projects, #active-projects {
     position: absolute;
     top: 8em;
     left: 10em;

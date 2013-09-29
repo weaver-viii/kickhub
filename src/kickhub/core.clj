@@ -37,7 +37,9 @@
   [:#login :img.pic] (html/set-attr :src pic)
   [:#new-projects]
   (html/content
-   (map #(link-model {:text (:name %) :href (:name %)})
+   (map #(link-model
+          {:text (:name %)
+           :href (str "user/" (get-uid-field (:by %) "u") "/" (:name %))})
         latest-projects)))
 
 (html/defsnippet option-model "kickhub/html/addproject.html" [:option]
@@ -46,7 +48,7 @@
              (html/content text)
              (html/set-attr :value value)))
 
-(html/deftemplate addproject "kickhub/html/addproject.html"
+(html/deftemplate addprojecttpl "kickhub/html/addproject.html"
   [{:keys [logged link pic add repos uid]}]
   [:#login :a.logged] (html/do-> (html/content logged) (html/set-attr :href link))
   [:#login :a.addproject] (html/content add)
@@ -56,8 +58,22 @@
   (html/content
    (map #(option-model {:text (:name %) :value (:name %)}) repos)))
 
-(html/deftemplate about "kickhub/html/about.html" [])
-(html/deftemplate notfound "kickhub/html/notfound.html" [])
+(html/deftemplate abouttpl "kickhub/html/about.html" [])
+(html/deftemplate notfoundtpl "kickhub/html/notfound.html" [])
+(html/deftemplate usertpl "kickhub/html/user.html"
+  [{:keys [u e created user-projects picurl]}]
+  [:#login :#pic] (html/set-attr :src picurl)
+  [:#login :#githublogin] (html/content (str "Github login: " u))
+  [:#login :#khsince] (html/content (str "On KickHub since: " (str created)))
+  [:#active-projects] 
+  (html/content
+   (map #(link-model {:text (:name %) :href (str "/user/" u "/" (:name %))})
+        user-projects)))
+
+(html/deftemplate projecttpl "kickhub/html/project.html"
+  [{:keys [name created]}]
+  [:#login :#pname] (html/content (str "Project name: " name))
+  [:#login :#khsince] (html/content (str "On KickHub since: " (str created))))
 
 (defn index [req]
   (if (authenticated? req)
@@ -86,13 +102,14 @@
           username (:login basic)
           email (:email basic)
           uid (get-username-uid username)
-          repos (github-user-repos access-token)]
-      (addproject {:logged "Log out" :link "/logout"
-                   :pic (get-uid-field uid "picurl")
-                   :add "Add new project"
-                   :repos repos
-                   :uid uid}))
-    (addproject {:logged "Log in with github" :link "/github"
+          repos (filter-out-active-repos
+                 (github-user-repos access-token) uid)]
+      (addprojecttpl {:logged "Log out" :link "/logout"
+                      :pic (get-uid-field uid "picurl")
+                      :add "Add new project"
+                      :repos repos
+                      :uid uid}))
+    (addprojecttpl {:logged "Log in with github" :link "/github"
                  :pic "" :add ""})))
 
 (def gh-client-config
@@ -150,33 +167,34 @@
   (friend/logout* (resp/redirect (str (:context req) "/"))))
 
 ;; FIXME
-(defn- newproject [{:keys [repo uid]}]
-  (create-project repo uid)
-  "Project created!")
+(defn- addprojectpage [{:keys [repo uid]}]
+  (if (create-project repo uid)
+    "Project created!"
+    "Project exists already."))
+
+(defn- projectpage [pname]
+  (let [pid (get-pname-pid pname)]
+    (projecttpl
+     (keywordize-array-mapize (get-pid-all pid)))))
+
+(defn- userpage [uname]
+  (let [uid (get-username-uid uname)
+        infos (keywordize-array-mapize (get-uid-all uid))]
+    (usertpl (assoc infos :user-projects
+                    (get-uid-projects uid)))))
 
 (defroutes app-routes
   (GET "/" req (index req))
+  (GET "/user/:uname/:pname" [uname pname] (projectpage pname))
+  (GET "/user/:uname" [uname] (userpage uname))
   (GET "/github" req (github req))
   (GET "/logout" req (logout req))
-  ;; FIXME: temporary test
-  (GET "/projects" [] (pr-str (get-last-projects 10)))
   (GET "/add" req (add req))
-  (GET "/about" req (about))
-  (POST "/addproject" {params :params} (newproject params))
-  (GET "/repos" req
-       (friend/authorize #{:kickhub.core/user}
-                         (render-repos-page req)))
-  (GET "/user" req
-       (friend/authorize #{:kickhub.core/user}
-                         (render-user-page req)))
-  (GET "/check" req
-       (if-let [identity (friend/identity req)]
-         (apply str "Logged in, with these roles: "
-                (-> identity friend/current-authentication :roles))
-         "You are an anonymous user."))
+  (POST "/addproject" {params :params} (addprojectpage params))
+  (GET "/about" req (abouttpl))
   (route/resources "/")
   ;; FIXME: better 404 page
-  (route/not-found (notfound)))
+  (route/not-found (notfoundtpl)))
 
 (def ring-handler
   (middleware/app-handler
