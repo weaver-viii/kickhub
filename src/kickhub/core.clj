@@ -24,42 +24,19 @@
   [ctxt]
   [:div#login-menu]
   (fn [match]
-    (cond
-     (and (authenticated? ctxt) (logged-in-normally? ctxt))
-     ((html/content "Logged in normally") match)
-     (authenticated? ctxt)
-     ((html/content "Logged in with github") match)
-     :else
-     ((html/content "Please login with your account or github") match))))
+    (if (authenticated? ctxt)
+      ((html/content "Logged in") match)
+      ((html/content "Log in with github") match))))
 
 (defn index [req]
-  (when (and (authenticated? req) (not (logged-in-normally? req)))
+  (when (authenticated? req)
     (let [authentications
           (get-in req [:session :cemerick.friend/identity :authentications])
           access-token (:access_token (second (first authentications)))
           basic (github-user-info access-token)]
-      (create-user (:login basic) (:email basic) "" "isactive" "nosend")))
+      (or (not (empty? (get-username-uid (:login basic))))
+          (create-user (:login basic) (:email basic)))))
   (indextpl req))
-
-(defn- login
-  "Display the login page."
-  [req]
-  (h/html5
-   (h/include-css "/css/kickhub.css")
-   [:body
-    [:h1 "KickHub"]
-    [:h2 "Login"]
-    [:form {:method "POST" :action "login"}
-     [:div "Username: " [:input {:type "text" :name "username"}]]
-     [:div "Password: " [:input {:type "password" :name "password"}]]
-     [:div [:input {:type "submit" :class "button" :value "Login"}]]]]))
-
-(defn- load-user
-  "Load a user from her username."
-  [username]
-  (let [uid (get-username-uid username)
-        password (get-uid-field uid "p")]
-    {:username username :password (hash-bcrypt password) :roles #{::user}}))
 
 (def gh-client-config
   {:client-id (System/getenv "github_client_id")
@@ -103,46 +80,21 @@
    {:allow-anon? true
     :default-landing-uri "/"
     :workflows
-    [(workflows/interactive-form
-      :login-uri "/login"
-      :credential-fn
-      (partial creds/bcrypt-credential-fn load-user))
-     (oauth2/workflow
+    [(oauth2/workflow
       {:client-config gh-client-config
        :uri-config friend-uri-config
        :login-uri "/github"
        :access-token-parsefn access-token-parsefn
        :config-auth friend-config-auth})]}))
 
+(defn- github [req] "It works!")
+
 (defn- logout [req]
   (friend/logout* (resp/redirect (str (:context req) "/"))))
 
-(defn- github [req]
-  "It works!")
-
-(defn- register
-  "Register a new user account."
-  ([]
-     (h/html5
-      (h/include-css "/css/kickhub.css")
-      [:body
-       [:h1 "KickHub"]
-       [:form {:method "POST" :action "register"}
-        [:div "Username: " [:input {:type "text" :name "username"}]]
-        [:div "Email: " [:input {:type "text" :name "email"}]]
-        [:div "Password: " [:input {:type "password" :name "password"}]]
-        [:div [:input {:type "submit" :class "button" :value "Register"}]]]]))
-  ([{:keys [username email password]}]
-     (create-user username email password nil nil)))
-
 (defroutes app-routes
   (GET "/" req (index req))
-  (GET "/sendmail/:user" [user] (send-email user))
-  (GET "/login" req (login req))
   (GET "/github" req (github req))
-  (GET "/register" [] (register))
-  (POST "/register" {params :params} (register params))
-  (GET "/activate/:authid" [authid] (activate-user authid))
   (GET "/logout" req (logout req))
   (GET "/repos" req
        (friend/authorize #{:kickhub.core/user}
