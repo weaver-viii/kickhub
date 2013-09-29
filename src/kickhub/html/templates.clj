@@ -99,5 +99,6 @@
   [:#new-projects :form :input#huid] (html/set-attr :value (get-uid-field by "u")))
 
 (html/deftemplate abouttpl "kickhub/html/about.html" [])
+(html/deftemplate creditstpl "kickhub/html/credits.html" [])
 (html/deftemplate roadmaptpl "kickhub/html/roadmap.html" [])
 (html/deftemplate notfoundtpl "kickhub/html/notfound.html" [])

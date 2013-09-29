@@ -159,6 +159,7 @@
   (POST "/addproject" req (addprojectpage req))
   (POST "/support" req (supportprojectpage req))
   (GET "/about" [] (abouttpl))
+  (GET "/credits" [] (creditstpl))
   (GET "/roadmap" [] (roadmaptpl))
   (GET "/test" req (pr-str req))
   (route/resources "/")
