@@ -1,15 +1,23 @@
 #+TITLE: Redis db specs
 
-| Status | Key Name        | Type   | Value                       | Description |
-|--------+-----------------+--------+-----------------------------+-------------|
-|        |                 |        |                             |             |
-|--------+-----------------+--------+-----------------------------+-------------|
-| Done   | global:uid      | string | 1                           |             |
-| Done   | uid:1           | hash   | {u: p: e: picurl: created:} |             |
-| Done   | user:bzg:uid    | string | 1                           |             |
-| Done   | users           | list   | {1, ...}                    |             |
-|--------+-----------------+--------+-----------------------------+-------------|
-|        | uid:1:followers | set    | {2}                         |             |
-|        | uid:2:following | set    | {1}                         |             |
-|--------+-----------------+--------+-----------------------------+-------------|
+| Status | Key Name        | Type   | Value                       | Description                                |
+|--------+-----------------+--------+-----------------------------+--------------------------------------------|
+|        |                 |        |                             |                                            |
+|--------+-----------------+--------+-----------------------------+--------------------------------------------|
+| Done   | global:uid      | string | 1                           |                                            |
+| Done   | uid:1           | hash   | {u: p: e: picurl: created:} |                                            |
+| Done   | user:bzg:uid    | string | 1                           |                                            |
+| Done   | users           | list   | {1, ...}                    |                                            |
+| Done   | uid:1:apid      | set    | {1, 2}                      | list of project for which user is an admin |
+|--------+-----------------+--------+-----------------------------+--------------------------------------------|
+| Done   | global:pid      | string | 1                           |                                            |
+| Done   | timeline        | list   | {1, 2}                      |                                            |
+| Done   | pid:1           | hash   | {name: created:}            |                                            |
+| Done   | pid:1:auid      | string | 1                           | admin uid for pid                          |
+|--------+-----------------+--------+-----------------------------+--------------------------------------------|
+|        | uid:1:followers | set    | {2}                         |                                            |
+|        | uid:2:following | set    | {1}                         |                                            | 
+
+Don't implement following before making sure github following graph is
+not enough.
 

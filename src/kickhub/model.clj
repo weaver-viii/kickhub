@@ -22,6 +22,20 @@
   [uid field]
   (wcar* (car/hget (str "uid:" uid) field)))
 
+;; FIXME: Not used yet
+;; (defn get-pid-field
+;;   "Given a pid and a field (as a string), return the info."
+;;   [pid field]
+;;   (wcar* (car/hget (str "pid:" pid) field)))
+
+;; FIXME: Not used yet
+;; (defn uid-admin-of-pid? [uid pid]
+;;   (= (wcar* (car/get (str "pid:" pid ":auid"))) uid))
+
+(defn get-last-projects [count]
+  (let [plist (wcar* (car/lrange "timeline" 0 (- count)))]
+    (map #(wcar* (car/hgetall (str "pid:" %))) plist)))
+
 ;; (defn set-uid-field
 ;;   "Given a uid, a field (as a string) and value, set the field's value."
 ;;   [uid field value]
@@ -55,3 +69,14 @@
          (car/set (str "user:" username ":uid") guid)
          (car/rpush "users" guid))
         (send-email email))))
+
+(defn create-project
+  "Create a new project."
+  [repo uid]
+  (let [pid (wcar* (car/incr "global:pid"))]
+    (wcar* (car/hmset
+            (str "pid:" pid)
+            "name" repo "created" (java.util.Date.))
+           (car/rpush "timeline" pid)
+           (car/set (str "pid:" pid ":auid") uid)
+           (car/sadd (str "uid:" uid ":apid") pid))))

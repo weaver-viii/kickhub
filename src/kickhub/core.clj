@@ -130,13 +130,17 @@
 (defn- logout [req]
   (friend/logout* (resp/redirect (str (:context req) "/"))))
 
+;; FIXME
 (defn- newproject [{:keys [repo uid]}]
-  (pr-str (str repo "\n" uid)))
+  (create-project repo uid)
+  "Project created!")
 
 (defroutes app-routes
   (GET "/" req (index req))
   (GET "/github" req (github req))
   (GET "/logout" req (logout req))
+  ;; FIXME: temporary test
+  (GET "/projects" [] (pr-str (get-last-projects 1)))
   (GET "/add" req (add req))
   (POST "/addproject" {params :params} (newproject params))
   (GET "/repos" req
@@ -151,6 +155,7 @@
                 (-> identity friend/current-authentication :roles))
          "You are an anonymous user."))
   (route/resources "/")
+  ;; FIXME: better 404 page
   (route/not-found "Sorry, page not found."))
 
 (def ring-handler
