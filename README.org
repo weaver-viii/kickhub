@@ -1,4 +1,6 @@
 * KickHub : boost donations to free software/content
 
+#+HTML: <a href="http://travis-ci.org/bzg/kickhub"><img src="https://api.travis-ci.org/bzg/kickhub.png"/></a>
+
 See http://bzg.fr/clojurecup-2013.html and especially [[http://bzg.fr/clojurecup-2013-the-problem.html][the problem]] I
 try to define/explore/tackle.
