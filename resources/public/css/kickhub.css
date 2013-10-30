@@ -123,3 +123,15 @@ li {
     list-style-type: none; 
     margin: .3em;
 }
+
+#index0 {
+    text-align: center;
+    font-size: 120%;
+    line-height: 1.6em;
+    width: 60%;
+    margin: auto;
+}
+
+#index0 input {
+    margin: .2em;
+}

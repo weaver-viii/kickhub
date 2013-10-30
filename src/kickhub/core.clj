@@ -20,6 +20,9 @@
 (defn- authenticated? [req]
   (get-in req [:session :cemerick.friend/identity]))
 
+(defn index0 []
+  (index0tpl))
+
 (defn index [req]
   (if (authenticated? req)
     (let [authentications
@@ -150,7 +153,8 @@
                     (get-uid-projects uid)))))
 
 (defroutes app-routes
-  (GET "/" req (index req))
+  (GET "/" [] (index0))
+  (GET "/index" req (index req))
   (GET "/user/:uname/:pname" [uname pname] (projectpage pname))
   (GET "/user/:uname" [uname] (userpage uname))
   (GET "/github" req (github req))

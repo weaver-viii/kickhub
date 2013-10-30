@@ -64,6 +64,8 @@
            :tamount (:amount %)})
         latest-transactions)))
 
+(html/deftemplate index0tpl "kickhub/html/index0.html" [])
+
 (html/defsnippet option-model "kickhub/html/addproject.html" [:option]
   [{:keys [text value]}]
   [:option] (html/do->
