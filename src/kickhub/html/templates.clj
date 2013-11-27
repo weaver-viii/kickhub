@@ -37,8 +37,31 @@
 
 (html/defsnippet news "kickhub/html/news.html" [:#allnews] [])
 (html/defsnippet profile "kickhub/html/profile.html" [:#profile] [])
-(html/defsnippet my-projects "kickhub/html/lists.html" [:#my_projects] [])
-(html/defsnippet my-donations "kickhub/html/lists.html" [:#my_donations] [])
+
+;;; Projects and donations snippets
+
+(def ^:dynamic *project-sel* [[:.project (html/nth-of-type 1)] :> html/first-child])
+(html/defsnippet my-project "kickhub/html/lists.html" *project-sel*
+  [{:keys [name]}]
+  [:a] (html/content name))
+(html/defsnippet my-projects "kickhub/html/lists.html" [:#my_projects]
+  [projects]
+  [:#content] (html/content (map #(my-project %) projects)))
+
+(def ^:dynamic *donation-sel* [[:.donation (html/nth-of-type 1)] :> html/first-child])
+(html/defsnippet my-donation "kickhub/html/lists.html" *donation-sel*
+  [{:keys [amount]}]
+  [:a] (html/content amount))
+(html/defsnippet my-donations "kickhub/html/lists.html" [:#my_donations]
+  [donations]
+  [:#content1] (html/content (map #(my-donation %) donations)))
+
+;; (render (html/emit* (my-projects (get-uid-projects (get-username-uid "bzg")))))
+;; (render (html/emit* (map #(my-project %) (get-uid-projects (get-username-uid "bzg"))))))
+;; (html/content (map #(my-project %) (get-uid-projects (get-username-uid "bzg"))))
+;; (html/content (map #(my-donation %) (get-uid-transactions (get-username-uid "bzg"))))
+
+;;; Other snippets
 
 (html/defsnippet login "kickhub/html/forms.html" [:#login] [])
 (html/defsnippet register "kickhub/html/forms.html" [:#register] [])
@@ -92,14 +115,20 @@
           (resp/redirect "/user"))
       (index-tpl {:container (submit-donation)}))))
 
+(defn user-page [req id]
+  (let [params (clojure.walk/keywordize-keys (:form-params req))
+        uid (get-username-uid (:current id))]
+    (index-tpl {:container
+                (concat (my-projects (get-uid-projects uid))
+                        (my-donations (get-uid-transactions uid)))})))
+
 (defn notfound-page [] (index-tpl {:container (notfound)}))
 (defn about-page [] (index-tpl {:container (about) :logo-link "/"}))
 (defn tos-page [] (index-tpl {:container (tos)}))
 (defn profile-page [] (index-tpl {:container (profile)}))
 (defn submit-profile-page [] (index-tpl {:container (submit-profile)}))
-(defn user-page [] (index-tpl {:container (concat (my-projects) (my-donations))}))
 
 ;;; Testing
 
 ;; (defn render [t] (apply str t))
-;; (render (html/emit* (profile)))
+;; (render (html/emit* (my-projects "2")))

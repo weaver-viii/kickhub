@@ -133,7 +133,9 @@
   (GET "/tos" [] (tos-page))
   (GET "/login" {params :params} (login-page params))
 
-  (GET "/user" req (if (friend/identity req) (user-page) (resp/redirect "/login")))
+  (GET "/user" req (if (friend/identity req)
+                     (user-page req (friend/identity req))
+                     (resp/redirect "/login")))
   (GET "/profile" [] (profile-page))
 
   (GET "/register" [] (register-page nil))

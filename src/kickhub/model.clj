@@ -64,6 +64,9 @@
          (wcar* (car/hgetall (str "tid:" %))))
        (wcar* (car/smembers (str "uid:" uid ":atid")))))
 
+;; (get-uid-transactions "1")
+;; (get-uid-projects (get-username-uid "bzg"))
+
 (defn create-user [username email password]
   (let [guid (wcar* (car/incr "global:uid"))]
     (do (wcar*
@@ -119,7 +122,7 @@
             "confirmed" "0")
            (car/rpush "trans" tid)
            (car/set (str "tid:" tid ":auid") fuid)
-           (car/sadd (str "uid:" uid ":atid") tid))))
+           (car/sadd (str "uid:" fuid ":atid") tid))))
 
 ;; (defn filter-out-active-repos
 ;;   "Filter out repos that user uid has already activated"

@@ -1,5 +1,3 @@
-@import url(http://fonts.googleapis.com/css?family=Brawler);
-
 html, body {
     margin: 0; 
     padding: 0;
@@ -8,14 +6,13 @@ html, body {
 li {list-style-type:none;}
 
 input {
+    font-family: "Inconsolata";
     display:block;
     padding:.4em;
     margin:.4em;
     background-color: #eee;
     border: 1ps solid gray;
 }
-
-
 
 #logo img {
     position: absolute;
