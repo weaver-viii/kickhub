@@ -59,6 +59,11 @@
          (wcar* (car/hgetall (str "pid:" %))))
        (wcar* (car/smembers (str "uid:" uid ":apid")))))
 
+(defn get-uid-transactions [uid]
+  (map #(keywordize-array-mapize
+         (wcar* (car/hgetall (str "tid:" %))))
+       (wcar* (car/smembers (str "uid:" uid ":atid")))))
+
 (defn create-user [username email password]
   (let [guid (wcar* (car/incr "global:uid"))]
     (do (wcar*
@@ -113,7 +118,8 @@
             "amount" amount
             "confirmed" "0")
            (car/rpush "trans" tid)
-           (car/set (str "tid:" tid ":auid") fuid))))
+           (car/set (str "tid:" tid ":auid") fuid)
+           (car/sadd (str "uid:" uid ":atid") tid))))
 
 ;; (defn filter-out-active-repos
 ;;   "Filter out repos that user uid has already activated"
