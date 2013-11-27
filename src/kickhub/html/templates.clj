@@ -13,8 +13,15 @@
 
 ;;; Templates
 
-(html/deftemplate index-tpl "kickhub/html/base.html" [{:keys [container logo-link]}]
-  [:#logo :a]   (html/set-attr :href (or logo-link "/about"))
+(html/deftemplate index-tpl "kickhub/html/base.html"
+  [{:keys [container logo-link menu-link]}]
+  ;; In /about, the logo points to the index page
+  [:#logo :a] (html/set-attr :href (or logo-link "/about"))
+  ;; Set the menu item
+  [:#menu :ul :li :a] (html/do->
+                       (html/content (or (last menu-link) "Login"))
+                       (html/set-attr :href (or (first menu-link) "/login")))
+  ;; Set the content of the page
   [:#container] (maybe-content container))
 
 ;;; Snippets
@@ -36,9 +43,10 @@
 
 ;;; Views
 
-(defn index-tba-page [] (index-tpl {:container (concat (tba) (submit-email))}))
-(defn notfound-page [] (index-tpl {:container (notfound)}))
+(defn index-tba-page [] (index-tpl {:container (concat (tba) (submit-email))
+                                    :menu-link ["http://bzg.fr" "bzg"]}))
 (defn index-page [] (index-tpl {:container (news)}))
+(defn notfound-page [] (index-tpl {:container (notfound)}))
 (defn about-page [] (index-tpl {:container (about) :logo-link "/"}))
 (defn login-page [] (index-tpl {:container (login)}))
 (defn profile-page [] (index-tpl {:container (profile)}))
