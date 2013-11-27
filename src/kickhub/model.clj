@@ -14,6 +14,29 @@
 (defmacro wcar* [& body]
   `(car/wcar server1-conn ~@body))
 
+(defn send-email [email subject body]
+  (postal/send-message
+   ^{:host "localhost"
+     :port 25}
+   {:from "Bastien <bzg@bzg.fr>"
+    :to email
+    :subject subject
+    :body body}))
+
+(defn send-email-activate-account [email]
+  (let [subject "Welcome to Kickhub -- please activate your account"
+        body "Welcome to Kickhub!\n\nHere is your activation link:\n\n-- \nBastien"]
+    (send-email email subject body)))
+    
+(defn send-email-subscribe-mailing [email]
+  (let [subject "New subscriber for Kickhub"]
+    (send-email "bzg@bzg.fr" subject email)))
+
+(defn email-to-mailing [{:keys [email]}]
+  (do (wcar* (car/sadd "mailing" email))
+      (send-email-subscribe-mailing email)
+      (resp/redirect (str "/?m=" email))))
+
 (defn get-username-uid
   "Given a username, return the corresponding uid."
   [username]
@@ -72,19 +95,6 @@
          (wcar* (car/hgetall (str "pid:" %))))
        (wcar* (car/smembers (str "uid:" uid ":apid")))))
 
-(defn send-email [email]
-  (postal/send-message
-   ^{:host "localhost"
-     :port 25}
-   {:from "Bastien <bzg@bzg.fr>"
-    :to email
-    :subject "Thanks for testing KickHub!"
-    :body
-    (str "Welcome to KickHub!\n\n"
-         "KickHub aims at boosting donations to free software/content.\n\n"
-         "Learn more about the why and the how:\n"
-         "http://bzg.fr/clojurecup-2013-the-problem.html\n\n-- \nBastien")}))
-
 (defn create-user [username email password]
   (let [guid (wcar* (car/incr "global:uid"))]
     (do (wcar*
@@ -98,7 +108,7 @@
           "created" (java.util.Date.))
          (car/set (str "user:" username ":uid") guid)
          (car/rpush "users" guid))
-        (send-email email)
+        (send-email-activate-account email)
         (resp/redirect "/"))))
 
 (defn- project-by-uid-exists? [repo uid]
