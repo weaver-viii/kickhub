@@ -2,7 +2,7 @@
   (:require
    [noir.util.middleware :as middleware]
    [ring.util.response :as resp]
-   ;; [kickhub.model :refer :all]
+   [kickhub.model :refer :all]
    ;; [kickhub.github :refer :all]
    [kickhub.html.templates :refer :all]
    [ring.util.codec :as codec]
@@ -115,8 +115,8 @@
 
 ;; (defn- github [req] "It works!")
 
-;; (defn- logout [req]
-;;   (friend/logout* (resp/redirect (str (:context req) "/"))))
+(defn- logout [req]
+  (friend/logout* (resp/redirect (str (:context req) "/"))))
 
 ;; (defn- addprojectpage [req]
 ;;   (if (authenticated? req)
@@ -154,13 +154,41 @@
 ;;     (usertpl (assoc infos :user-projects
 ;;                     (get-uid-projects uid)))))
 
+(defn- load-user
+  "Load a user from her username."
+  [username]
+  (let [uid (get-username-uid username)
+        password (get-uid-field uid "p")]
+    {:username username :password (hash-bcrypt password) :roles #{::users}}))
+
+(defn wrap-friend [handler]
+  "Wrap friend authentication around handler."
+  (friend/authenticate
+   handler
+   {:allow-anon? true
+    :workflows [(workflows/interactive-form
+                 :allow-anon? true
+                 :login-uri "/login"
+                 :default-landing-uri "/"
+                 :credential-fn
+                 (partial creds/bcrypt-credential-fn load-user))]}))
+
+(defn register-user
+  "Register a new user"
+  [{:keys [username email password]}]
+  (do (create-user username email password)
+      ;; (resp/redirect "/index")
+      ))
+
 (defroutes app-routes
   ;; (GET "/" [] (index0))
   (GET "/" [] (index-tba-page))
   (GET "/index" [] (index-page))
   (GET "/about" [] (about-page))
   (GET "/tos" [] (tos-page))
-  (GET "/login" [] (login-page))
+  (GET "/login" req (login-page req))
+  (GET "/register" [] (register-page nil))
+  (POST "/register" {params :params} (register-user params))
   (GET "/user" [] (user-page))
   (GET "/profile" [] (profile-page))
   (GET "/project" [] (submit-project-page))
@@ -168,7 +196,7 @@
   ;; (GET "/user/:uname/:pname" [uname pname] (projectpage pname))
   ;; (GET "/user/:uname" [uname] (userpage uname))
   ;; (GET "/github" req (github req))
-  ;; (GET "/logout" req (logout req))
+  (GET "/logout" req (logout req))
   ;; (GET "/add" req (add req))
   ;; (POST "/addproject" req (addprojectpage req))
   ;; (POST "/support" req (supportprojectpage req))
@@ -176,12 +204,11 @@
   ;; (GET "/credits" [] (creditstpl))
   ;; (GET "/roadmap" [] (roadmaptpl))
   ;; (GET "/test" req (pr-str req))
+  (GET "/test" req (if-let [identity (friend/identity req)] "loggedin" "notloggedin"))
   (route/resources "/")
   (route/not-found (notfound-page))
   )
 
 (def ring-handler
   (middleware/app-handler
-   ;; [(wrap-friend app-routes)]
-   [app-routes]
-   ))
+   [(wrap-friend app-routes)]))

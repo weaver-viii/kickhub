@@ -1,6 +1,16 @@
-<form id="login">
-  <input type="text" name="firstname" value="First name" />
-  <input type="text" name="lastname" value="Last name" />
+<form id="login" action="/login" method="post">
+  <input type="text" name="username" value="Username" />
+  <input type="password" name="password" value="Password" />
+  <br/>
+  <input type="submit" value="Login" />
+</form>
+
+<form id="register" action="/register" method="post">
+  <input type="text" name="username" value="Username" />
+  <input type="text" name="email" value="Email" />
+  <input type="password" name="password" value="Password" />
+  <br/>
+  <input type="submit" value="Register" />
 </form>
 
 <form id="submit-project">

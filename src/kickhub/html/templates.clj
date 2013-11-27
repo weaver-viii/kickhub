@@ -14,13 +14,14 @@
 ;;; Templates
 
 (html/deftemplate index-tpl "kickhub/html/base.html"
-  [{:keys [container logo-link menu-link]}]
+  [{:keys [container logo-link]}]
   ;; In /about, the logo points to the index page
   [:#logo :a] (html/set-attr :href (or logo-link "/about"))
   ;; Set the menu item
-  [:#menu :ul :li :a] (html/do->
-                       (html/content (or (last menu-link) "Login"))
-                       (html/set-attr :href (or (first menu-link) "/login")))
+  ;; [:#menu :ul :li :a.log1] ;; :> html/first-child]]]
+  ;; (html/do->
+  ;;  (html/content (or (last menu-link) "Login"))
+  ;;  (html/set-attr :href (or (first menu-link) "/login")))
   ;; Set the content of the page
   [:#container] (maybe-content container))
 
@@ -37,6 +38,7 @@
 (html/defsnippet my-donations "kickhub/html/lists.html" [:#my_donations] [])
 
 (html/defsnippet login "kickhub/html/forms.html" [:#login] [])
+(html/defsnippet register "kickhub/html/forms.html" [:#register] [])
 (html/defsnippet submit-email "kickhub/html/forms.html" [:#submit-email] [])
 (html/defsnippet submit-project "kickhub/html/forms.html" [:#submit-project] [])
 (html/defsnippet submit-donation "kickhub/html/forms.html" [:#submit-donation] [])
@@ -44,14 +46,15 @@
 
 ;;; Views
 
-(defn index-tba-page [] (index-tpl {:container (concat (tba) (submit-email))
-                                    :menu-link ["#" ""]}))
+(defn index-tba-page [] (index-tpl {:container (concat (tba) (submit-email))}))
 (defn index-page [] (index-tpl {:container (news)}))
 (defn notfound-page [] (index-tpl {:container (notfound)}))
 (defn about-page [] (index-tpl {:container (about) :logo-link "/"}))
 (defn tos-page [] (index-tpl {:container (tos)}))
-(defn login-page [] (index-tpl {:container (login)
-                                :menu-link ["/tos" "Terms of service"]}))
+(defn login-page [params]
+  (index-tpl {:container (login)}))
+(defn register-page [params]
+  (index-tpl {:container (register)}))
 (defn profile-page [] (index-tpl {:container (profile)}))
 (defn submit-profile-page [] (index-tpl {:container (submit-profile)}))
 (defn user-page [] (index-tpl {:container (concat (my-projects) (my-donations))}))

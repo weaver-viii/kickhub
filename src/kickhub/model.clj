@@ -5,6 +5,7 @@
    [hiccup.page :as h]
    [hiccup.element :as e]
    [postal.core :as postal]
+   [ring.util.response :as resp]
    [taoensso.carmine :as car]))
 
 (def server1-conn
@@ -82,23 +83,23 @@
     (str "Welcome to KickHub!\n\n"
          "KickHub aims at boosting donations to free software/content.\n\n"
          "Learn more about the why and the how:\n"
-         "http://bzg.fr/clojurecup-2013-the-problem.html\n"
-         "http://kickhub.clojurecup.com\n\n"
-         "... and don't forget to vote for this project :)\n"
-         "http://clojurecup.com/app.html?app=kickhub\n\n-- \nBastien")}))
+         "http://bzg.fr/clojurecup-2013-the-problem.html\n\n-- \nBastien")}))
 
-(defn create-user [username email]
+(defn create-user [username email password]
   (let [guid (wcar* (car/incr "global:uid"))]
     (do (wcar*
          (car/hmset
           (str "uid:" guid)
-          "u" username "e" email
+          "u" username
+          "e" email
+          "p" password
           "picurl" (str "http://www.gravatar.com/avatar/"
                         (digest/md5 email))
           "created" (java.util.Date.))
          (car/set (str "user:" username ":uid") guid)
          (car/rpush "users" guid))
-        (send-email email))))
+        (send-email email)
+        (resp/redirect "/"))))
 
 (defn- project-by-uid-exists? [repo uid]
   (uid-admin-of-pid? uid (get-pname-pid repo)))
