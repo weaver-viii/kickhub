@@ -7,6 +7,16 @@ html, body {
 
 li {list-style-type:none;}
 
+input {
+    display:block;
+    padding:.4em;
+    margin:.4em;
+    background-color: #eee;
+    border: 1ps solid gray;
+}
+
+
+
 #logo img {
     position: absolute;
     width: 200px;
@@ -28,6 +38,14 @@ li {list-style-type:none;}
     position:absolute;
     top:10em;
     left:10em;
+}
+
+#msg {
+    position:absolute;
+    top:8em;
+    left:10em;
+    color:red;
+    margin: 0em;
 }
 
 #notifications {    
@@ -52,6 +70,7 @@ li {list-style-type:none;}
     padding:0em;
     border-top: 1px solid gray;
 }
+
 
 /* #footer p { */
 /*     margin:0; */
