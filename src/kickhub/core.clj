@@ -159,6 +159,7 @@
   (GET "/" [] (index-tba-page))
   (GET "/index" [] (index-page))
   (GET "/about" [] (about-page))
+  (GET "/tos" [] (tos-page))
   (GET "/login" [] (login-page))
   (GET "/user" [] (user-page))
   (GET "/profile" [] (profile-page))

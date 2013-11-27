@@ -29,6 +29,7 @@
 (html/defsnippet tba "kickhub/html/messages.html" [:#tba] [])
 (html/defsnippet notfound "kickhub/html/messages.html" [:#notfound] [])
 (html/defsnippet about "kickhub/html/messages.html" [:#about] [])
+(html/defsnippet tos "kickhub/html/messages.html" [:#tos] [])
 
 (html/defsnippet news "kickhub/html/news.html" [:#allnews] [])
 (html/defsnippet profile "kickhub/html/profile.html" [:#profile] [])
@@ -44,11 +45,13 @@
 ;;; Views
 
 (defn index-tba-page [] (index-tpl {:container (concat (tba) (submit-email))
-                                    :menu-link ["http://bzg.fr" "bzg"]}))
+                                    :menu-link ["#" ""]}))
 (defn index-page [] (index-tpl {:container (news)}))
 (defn notfound-page [] (index-tpl {:container (notfound)}))
 (defn about-page [] (index-tpl {:container (about) :logo-link "/"}))
-(defn login-page [] (index-tpl {:container (login)}))
+(defn tos-page [] (index-tpl {:container (tos)}))
+(defn login-page [] (index-tpl {:container (login)
+                                :menu-link ["/tos" "Terms of service"]}))
 (defn profile-page [] (index-tpl {:container (profile)}))
 (defn submit-profile-page [] (index-tpl {:container (submit-profile)}))
 (defn user-page [] (index-tpl {:container (concat (my-projects) (my-donations))}))
