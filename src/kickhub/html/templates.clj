@@ -14,8 +14,10 @@
 ;;; Templates
 
 (html/deftemplate index-tpl "kickhub/html/base.html"
-  [{:keys [container logo-link]}]
+  [{:keys [container logo-link msg nomenu]}]
   ;; In /about, the logo points to the index page
+  [:#menu] (maybe-substitute nomenu)
+  [:#msg :p] (maybe-content msg)
   [:#logo :a] (html/set-attr :href (or logo-link "/about"))
   ;; Set the menu item
   ;; [:#menu :ul :li :a.log1] ;; :> html/first-child]]]
@@ -46,15 +48,31 @@
 
 ;;; Views
 
-(defn index-tba-page [] (index-tpl {:container (concat (tba) (submit-email))}))
-(defn index-page [] (index-tpl {:container (news)}))
+(defn index-tba-page [params]
+  (index-tpl {:container (concat (tba) (submit-email))
+              :msg (if (:m params)
+                     (str (:m params) " is now subscribed")
+                     "")}))
+
+(defn index-page [auth?]
+  (index-tpl {:container (news)
+              :nomenu (when auth? "")
+              :msg (if auth?
+                     "You are now logged in"
+                     "Please login or register")}))
+
+(defn login-page [params]
+  (index-tpl {:container (login)
+              :msg (if (= (:login_failed params) "Y")
+                     "Error when logging in..."
+                     "")}))
+
+(defn register-page [params]
+  (index-tpl {:container (register)}))
+
 (defn notfound-page [] (index-tpl {:container (notfound)}))
 (defn about-page [] (index-tpl {:container (about) :logo-link "/"}))
 (defn tos-page [] (index-tpl {:container (tos)}))
-(defn login-page [params]
-  (index-tpl {:container (login)}))
-(defn register-page [params]
-  (index-tpl {:container (register)}))
 (defn profile-page [] (index-tpl {:container (profile)}))
 (defn submit-profile-page [] (index-tpl {:container (submit-profile)}))
 (defn user-page [] (index-tpl {:container (concat (my-projects) (my-donations))}))
@@ -63,8 +81,5 @@
 
 ;;; Testing
 
-;; (defn render [t]
-;;   (apply str t))
-
+;; (defn render [t] (apply str t))
 ;; (render (html/emit* (profile)))
-
