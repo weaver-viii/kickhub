@@ -2,9 +2,7 @@
   (:require
    [digest :as digest]
    [clojure.walk :refer :all]
-   [hiccup.page :as h]
-   [hiccup.element :as e]
-   [postal.core :as postal]
+   [kickhub.mail :refer :all]
    [ring.util.response :as resp]
    [taoensso.carmine :as car]))
 
@@ -14,28 +12,16 @@
 (defmacro wcar* [& body]
   `(car/wcar server1-conn ~@body))
 
-(defn send-email [email subject body]
-  (postal/send-message
-   ^{:host "localhost"
-     :port 25}
-   {:from "Bastien <bzg@bzg.fr>"
-    :to email
-    :subject subject
-    :body body}))
-
-(defn send-email-activate-account [email]
-  (let [subject "Welcome to Kickhub -- please activate your account"
-        body "Welcome to Kickhub!\n\nHere is your activation link:\n\n-- \nBastien"]
-    (send-email email subject body)))
-    
-(defn send-email-subscribe-mailing [email]
-  (let [subject "New subscriber for Kickhub"]
-    (send-email "bzg@bzg.fr" subject email)))
-
 (defn email-to-mailing [{:keys [email]}]
   (do (wcar* (car/sadd "mailing" email))
       (send-email-subscribe-mailing email)
       (resp/redirect (str "/?m=" email))))
+
+(defn register-user
+  "Register a new user"
+  [{:keys [username email password]}]
+  (do (create-user username email password)
+      (resp/redirect "/index")))
 
 (defn get-username-uid
   "Given a username, return the corresponding uid."
@@ -67,28 +53,12 @@
   [pid field]
   (wcar* (car/hget (str "pid:" pid) field)))
 
-(defn filter-out-active-repos
-  "Filter out repos that user uid has already activated"
-  [repos uid]
-  (filter #(not (=
-            (wcar* (car/sismember
-                    (str "uid:" uid ":apid")
-                    (get-pname-pid (:name %))))
-            1))
-          repos))
-
 (defn- uid-admin-of-pid? [uid pid]
   (= (wcar* (car/get (str "pid:" pid ":auid"))) uid))
 
 (defmacro keywordize-array-mapize [& body]
   `(keywordize-keys
     (apply array-map ~@body)))
-
-(defn get-last-stream [[kind id] count]
-  (let [plist (reverse (take count (wcar* (car/lrange kind 0 -1))))]
-    (map #(keywordize-array-mapize
-           (wcar* (car/hgetall (str id %))))
-         plist)))
 
 (defn get-uid-projects [uid]
   (map #(keywordize-array-mapize
@@ -121,7 +91,8 @@
     (let [pid (wcar* (car/incr "global:pid"))]
       (wcar* (car/hmset
               (str "pid:" pid)
-              "name" repo "created" (java.util.Date.)
+              "name" repo
+              "created" (java.util.Date.)
               "by" uid)
              (car/rpush "projects" pid)
              (car/set (str "pid:" pid ":auid") uid)
@@ -142,3 +113,19 @@
             "confirmed" "0")
            (car/rpush "trans" tid)
            (car/set (str "tid:" tid ":auid") fuid))))
+
+;; (defn filter-out-active-repos
+;;   "Filter out repos that user uid has already activated"
+;;   [repos uid]
+;;   (filter #(not (=
+;;             (wcar* (car/sismember
+;;                     (str "uid:" uid ":apid")
+;;                     (get-pname-pid (:name %))))
+;;             1))
+;;           repos))
+
+;; (defn get-last-stream [[kind id] count]
+;;   (let [plist (reverse (take count (wcar* (car/lrange kind 0 -1))))]
+;;     (map #(keywordize-array-mapize
+;;            (wcar* (car/hgetall (str id %))))
+;;          plist)))
