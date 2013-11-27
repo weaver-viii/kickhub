@@ -9,8 +9,6 @@
    [compojure.core :as compojure :refer (GET POST defroutes)]
    (compojure [handler :as handler]
               [route :as route])
-   ;; [hiccup.page :as h]
-   ;; [hiccup.element :as e]
    [cemerick.friend :as friend]
    (cemerick.friend [workflows :as workflows]
                     [credentials :as creds])
@@ -19,50 +17,6 @@
 
 ;; (defn- authenticated? [req]
 ;;   (get-in req [:session :cemerick.friend/identity]))
-
-;; (defn index0 []
-;;   (index0tpl))
-
-;; (defn index [req]
-;;   (indextpl))
-
-  ;; (if (authenticated? req)
-  ;;   (let [authentications
-  ;;         (get-in req [:session :cemerick.friend/identity :authentications])
-  ;;         access-token (:access_token (second (first authentications)))
-  ;;         basic (github-user-info access-token)
-  ;;         username (:login basic)
-  ;;         email (:email basic)
-  ;;         uid (get-username-uid username)]
-  ;;     (when (empty? uid) (create-user username email))
-  ;;     (indextpl {:logged "Log out" :link "/logout"
-  ;;                :pic (get-uid-field uid "picurl")
-  ;;                :add "New project" :msg ""
-  ;;                :latest-projects (get-last-stream ["projects" "pid:"] 7)
-  ;;                :latest-transactions (get-last-stream ["trans" "tid:"] 7)}))
-  ;;   (indextpl {:logged "Log in with github" :link "/github"
-  ;;              :pic "" :add "" :msg "Welcome on KickHub!"
-  ;;              :latest-projects (get-last-stream ["projects" "pid:"] 7)
-  ;;              :latest-transactions (get-last-stream ["trans" "tid:"] 7)})))
-
-;; (defn- add [req]
-;;   (if (authenticated? req)
-;;     (let [authentications
-;;           (get-in req [:session :cemerick.friend/identity :authentications])
-;;           access-token (:access_token (second (first authentications)))
-;;           basic (github-user-info access-token)
-;;           username (:login basic)
-;;           email (:email basic)
-;;           uid (get-username-uid username)
-;;           repos (filter-out-active-repos
-;;                  (github-user-repos access-token) uid)]
-;;       (addprojecttpl {:logged "Log out" :link "/logout"
-;;                       :pic (get-uid-field uid "picurl")
-;;                       :add "New project"
-;;                       :repos repos
-;;                       :uid uid}))
-;;     (addprojecttpl {:logged "Log in with github" :link "/github"
-;;                     :pic "" :add ""})))
 
 ;; (def gh-client-config
 ;;   {:client-id (System/getenv "github_client_id")
@@ -113,11 +67,6 @@
 ;;        :access-token-parsefn access-token-parsefn
 ;;        :config-auth friend-config-auth})]}))
 
-;; (defn- github [req] "It works!")
-
-(defn- logout [req]
-  (friend/logout* (resp/redirect (str (:context req) "/"))))
-
 ;; (defn- addprojectpage [req]
 ;;   (if (authenticated? req)
 ;;     (let [params (clojure.walk/keywordize-keys (:form-params req))
@@ -154,6 +103,9 @@
 ;;     (usertpl (assoc infos :user-projects
 ;;                     (get-uid-projects uid)))))
 
+(defn- logout [req]
+  (friend/logout* (resp/redirect (str (:context req) "/"))))
+
 (defn- load-user
   "Load a user from her username."
   [username]
@@ -172,13 +124,6 @@
                  :default-landing-uri "/"
                  :credential-fn
                  (partial creds/bcrypt-credential-fn load-user))]}))
-
-(defn register-user
-  "Register a new user"
-  [{:keys [username email password]}]
-  (do (create-user username email password)
-      ;; (resp/redirect "/index")
-      ))
 
 (defroutes app-routes
   (GET "/" {params :params} (index-tba-page params))
