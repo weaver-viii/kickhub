@@ -1,6 +1,7 @@
 (ns kickhub.html.templates
   (:require
    [kickhub.model :refer :all]
+   [ring.util.response :as resp]
    [net.cgrand.enlive-html :as html]))
 
 (defmacro maybe-substitute
@@ -70,14 +71,33 @@
 (defn register-page [params]
   (index-tpl {:container (register)}))
 
+(defn submit-project-page [req id]
+  (let [params (clojure.walk/keywordize-keys (:form-params req))
+        name (:name params)
+        repo (:repo params)
+        uid (get-username-uid (:current id))]
+  (if params
+    (do (create-project name repo uid))
+        (resp/redirect "/user"))
+    (index-tpl {:container (submit-project)})))
+
+(defn submit-donation-page [req id]
+  (let [params (clojure.walk/keywordize-keys (:form-params req))
+        amount (:amount params)
+        pid (:pid params)
+        fuid (get-username-uid (:current id))
+        uid (get-pid-field pid "by")]
+    (if params
+      (do (create-transaction amount pid uid fuid)
+          (resp/redirect "/user"))
+      (index-tpl {:container (submit-donation)}))))
+
 (defn notfound-page [] (index-tpl {:container (notfound)}))
 (defn about-page [] (index-tpl {:container (about) :logo-link "/"}))
 (defn tos-page [] (index-tpl {:container (tos)}))
 (defn profile-page [] (index-tpl {:container (profile)}))
 (defn submit-profile-page [] (index-tpl {:container (submit-profile)}))
 (defn user-page [] (index-tpl {:container (concat (my-projects) (my-donations))}))
-(defn submit-project-page [] (index-tpl {:container (submit-project)}))
-(defn submit-donation-page [] (index-tpl {:container (submit-donation)}))
 
 ;;; Testing
 

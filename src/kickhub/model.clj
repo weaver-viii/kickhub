@@ -17,12 +17,6 @@
       (send-email-subscribe-mailing email)
       (resp/redirect (str "/?m=" email))))
 
-(defn register-user
-  "Register a new user"
-  [{:keys [username email password]}]
-  (do (create-user username email password)
-      (resp/redirect "/index")))
-
 (defn get-username-uid
   "Given a username, return the corresponding uid."
   [username]
@@ -81,17 +75,24 @@
         (send-email-activate-account email)
         (resp/redirect "/"))))
 
+(defn register-user
+  "Register a new user"
+  [{:keys [username email password]}]
+  (do (create-user username email password)
+      (resp/redirect "/index")))
+
 (defn- project-by-uid-exists? [repo uid]
   (uid-admin-of-pid? uid (get-pname-pid repo)))
 
 (defn create-project
   "Create a new project."
-  [repo uid]
+  [name repo uid]
   (when-not (project-by-uid-exists? repo uid)
     (let [pid (wcar* (car/incr "global:pid"))]
       (wcar* (car/hmset
               (str "pid:" pid)
-              "name" repo
+              "name" name
+              "repo" repo
               "created" (java.util.Date.)
               "by" uid)
              (car/rpush "projects" pid)
@@ -100,7 +101,7 @@
              (car/set (str "project:" repo ":pid") pid)))))
 
 (defn create-transaction
-  "Create a new project."
+  "Create a new transaction."
   [amount pid uid fuid]
   (let [tid (wcar* (car/incr "global:tid"))]
     (wcar* (car/hmset

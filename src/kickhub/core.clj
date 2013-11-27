@@ -132,14 +132,20 @@
   (GET "/about" [] (about-page))
   (GET "/tos" [] (tos-page))
   (GET "/login" {params :params} (login-page params))
+
+  (GET "/user" req (if (friend/identity req) (user-page) (resp/redirect "/login")))
+  (GET "/profile" [] (profile-page))
+
   (GET "/register" [] (register-page nil))
   (POST "/register" {params :params} (register-user params))
-  (GET "/user" [] (user-page))
-  (GET "/profile" [] (profile-page))
-  (GET "/project" [] (submit-project-page))
-  (GET "/donation" [] (submit-donation-page))
+
+  (GET "/project" [] (submit-project-page nil nil))
+  (POST "/project" req (submit-project-page req (friend/identity req)))
+  (GET "/donation" [] (submit-donation-page nil nil))
+  (POST "/donation" req (submit-donation-page req (friend/identity req)))
+
   (GET "/logout" req (logout req))
-  (GET "/test" req (if-let [identity (friend/identity req)] "loggedin" "notloggedin"))
+  (GET "/test" req (if-let [identity (friend/identity req)] (pr-str identity) "notloggedin"))
   (route/resources "/")
   (route/not-found (notfound-page))
   ;; (GET "/user/:uname/:pname" [uname pname] (projectpage pname))
