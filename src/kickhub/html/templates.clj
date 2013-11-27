@@ -3,104 +3,54 @@
    [kickhub.model :refer :all]
    [net.cgrand.enlive-html :as html]))
 
-;; Shamelessly taken from Swannodette enlive tutorial
-(def ^:dynamic *link-sel*
-  [[:.content (html/nth-of-type 1)] :> html/first-child])
+(defmacro maybe-substitute
+  ([expr] `(if-let [x# ~expr] (html/substitute x#) identity))
+  ([expr & exprs] `(maybe-substitute (or ~expr ~@exprs))))
 
-(def ^:dynamic *link-sel2*
-  [[:.tcontent (html/nth-of-type 1)] :> html/first-child])
+(defmacro maybe-content
+  ([expr] `(if-let [x# ~expr] (html/content x#) identity))
+  ([expr & exprs] `(maybe-content (or ~expr ~@exprs))))
 
-(html/defsnippet link-model-index "kickhub/html/index.html" *link-sel*
-  [{:keys [by uhref project phref]}]
-  [:a#user] (html/do->
-             (html/content by)
-             (html/set-attr :href uhref))
-  [:a#project] (html/do->
-                (html/content project)
-                (html/set-attr :href phref)))
+;;; Templates
 
-(html/defsnippet link-model-trans "kickhub/html/index.html" *link-sel2*
-  [{:keys [tby tto bhref thref tproject phref tamount]}]
-  [:a#tuser] (html/do->
-              (html/content tby)
-              (html/set-attr :href bhref))
-  [:span#amount] (html/content tamount)
-  [:a#duser] (html/do->
-              (html/content tto)
-              (html/set-attr :href thref))
-  [:a#tproject] (html/do->
-                 (html/content tproject)
-                 (html/set-attr :href phref)))
+(html/deftemplate index-tpl "kickhub/html/base.html" [{:keys [container logo-link]}]
+  [:#logo :a]   (html/set-attr :href (or logo-link "/about"))
+  [:#container] (maybe-content container))
 
-(html/defsnippet link-model-user "kickhub/html/user.html" *link-sel*
-  [{:keys [text href]}]
-  [:a] (html/do->
-        (html/content text)
-        (html/set-attr :href href)))
+;;; Snippets
 
-(html/deftemplate indextpl "kickhub/html/index.html"
-  [{:keys [logged link pic add latest-projects latest-transactions msg]}]
-  [:#login :a.logged] (html/do-> (html/content logged) (html/set-attr :href link))
-  [:#login :a.addproject] (html/content add)
-  [:#login :img.pic] (html/set-attr :src pic)
-  [:p.msg] (html/content msg)
-  [:#new-projects]
-  (html/content
-   (map #(link-model-index
-          {:by (get-uid-field (:by %) "u")
-           :uhref (str "user/" (get-uid-field (:by %) "u"))
-           :project (:name %)
-           :phref (str "user/" (get-uid-field (:by %) "u") "/" (:name %))})
-        latest-projects))
-  [:#new-projects2]
-  (html/content
-   (map #(link-model-trans
-          {:tby (:by %)
-           :tto (:to %)
-           :bhref (str "user/" (:by %))
-           :thref (str "user/" (:to %))
-           :tproject (get-pid-field (:for %) "name")
-           :phref (str "user/" (:to %) "/" (get-pid-field (:for %) "name"))
-           :tamount (:amount %)})
-        latest-transactions)))
+(html/defsnippet tba "kickhub/html/messages.html" [:#tba] [])
+(html/defsnippet notfound "kickhub/html/messages.html" [:#notfound] [])
+(html/defsnippet about "kickhub/html/messages.html" [:#about] [])
 
-(html/deftemplate index0tpl "kickhub/html/index0.html" [])
+(html/defsnippet news "kickhub/html/news.html" [:#allnews] [])
+(html/defsnippet profile "kickhub/html/profile.html" [:#profile] [])
+(html/defsnippet my-projects "kickhub/html/lists.html" [:#my_projects] [])
+(html/defsnippet my-donations "kickhub/html/lists.html" [:#my_donations] [])
 
-(html/defsnippet option-model "kickhub/html/addproject.html" [:option]
-  [{:keys [text value]}]
-  [:option] (html/do->
-             (html/content text)
-             (html/set-attr :value value)))
+(html/defsnippet login "kickhub/html/forms.html" [:#login] [])
+(html/defsnippet submit-email "kickhub/html/forms.html" [:#submit-email] [])
+(html/defsnippet submit-project "kickhub/html/forms.html" [:#submit-project] [])
+(html/defsnippet submit-donation "kickhub/html/forms.html" [:#submit-donation] [])
+(html/defsnippet submit-profile "kickhub/html/forms.html" [:#submit-profile] [])
 
-(html/deftemplate addprojecttpl "kickhub/html/addproject.html"
-  [{:keys [logged link pic add repos uid]}]
-  [:#login :a.logged] (html/do-> (html/content logged) (html/set-attr :href link))
-  [:#login :a.addproject] (html/content add)
-  [:#login :img.pic] (html/set-attr :src pic)
-  [:#new-projects :form :#huid] (html/set-attr :value uid)
-  [:#new-projects :form :select]
-  (html/content
-   (map #(option-model {:text (:name %) :value (:name %)}) repos)))
+;;; Views
 
-(html/deftemplate usertpl "kickhub/html/user.html"
-  [{:keys [u e created user-projects picurl]}]
-  [:#login :#pic] (html/set-attr :src picurl)
-  [:#login :#githublogin] (html/content (str u " on Github"))
-  [:#login :#khsince] (html/content (str "Since: " (str created)))
-  [:#active-projects]
-  (html/content
-   (map #(link-model-user {:text (:name %) :href (str "/user/" u "/" (:name %))})
-        (reverse user-projects))))
+(defn index-tba-page [] (index-tpl {:container (concat (tba) (submit-email))}))
+(defn notfound-page [] (index-tpl {:container (notfound)}))
+(defn index-page [] (index-tpl {:container (news)}))
+(defn about-page [] (index-tpl {:container (about) :logo-link "/"}))
+(defn login-page [] (index-tpl {:container (login)}))
+(defn profile-page [] (index-tpl {:container (profile)}))
+(defn submit-profile-page [] (index-tpl {:container (submit-profile)}))
+(defn user-page [] (index-tpl {:container (concat (my-projects) (my-donations))}))
+(defn submit-project-page [] (index-tpl {:container (submit-project)}))
+(defn submit-donation-page [] (index-tpl {:container (submit-donation)}))
 
-(html/deftemplate projecttpl "kickhub/html/project.html"
-  [{:keys [name created by pid]}]
-  [:#login :#pname] (html/content name)
-  [:#login :#by] (html/content (str "By " (get-uid-field by "u")))
-  [:#login :#khsince] (html/content (str "Since: " (str created)))
-  [:#new-projects :form :input#puid] (html/set-attr :value pid)
-  [:#new-projects :form :input#huid] (html/set-attr :value (get-uid-field by "u")))
+;;; Testing
 
-(html/deftemplate abouttpl "kickhub/html/about.html" [])
-(html/deftemplate creditstpl "kickhub/html/credits.html" [])
-(html/deftemplate roadmaptpl "kickhub/html/roadmap.html" [])
-(html/deftemplate notfoundtpl "kickhub/html/notfound.html" [])
+;; (defn render [t]
+;;   (apply str t))
+
+;; (render (html/emit* (profile)))
+
