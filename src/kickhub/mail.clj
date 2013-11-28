@@ -12,9 +12,15 @@
     :subject subject
     :body body}))
 
-(defn send-email-activate-account [email]
+(defn send-email-activate-account [email authid]
   (let [subject "Welcome to Kickhub -- please activate your account"
-        body "Welcome to Kickhub!\n\nHere is your activation link:\n\n-- \nBastien"]
+        body (format "Welcome to Kickhub!
+
+Here is your activation link:
+http://localhost:8080/activate/%s
+
+-- 
+ Bastien" authid)]
     (send-email email subject body)))
     
 (defn send-email-subscribe-mailing [email]

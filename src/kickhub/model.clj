@@ -68,19 +68,22 @@
 ;; (get-uid-projects (get-username-uid "bzg"))
 
 (defn create-user [username email password]
-  (let [guid (wcar* (car/incr "global:uid"))]
+  (let [guid (wcar* (car/incr "global:uid"))
+        authid (digest/md5 (str (System/currentTimeMillis) username))
+        picurl (str "http://www.gravatar.com/avatar/" (digest/md5 email))]
     (do (wcar*
          (car/hmset
           (str "uid:" guid)
           "u" username
           "e" email
           "p" password
-          "picurl" (str "http://www.gravatar.com/avatar/"
-                        (digest/md5 email))
+          "picurl" picurl
           "created" (java.util.Date.))
-         (car/set (str "user:" username ":uid") guid)
+         (car/set (str "user:" username ":uid") guid
+                  (str "uid:" guid ":auth") authid
+                  (str "auth:" authid) guid)
          (car/rpush "users" guid))
-        (send-email-activate-account email)
+        (send-email-activate-account email authid)
         (resp/redirect "/"))))
 
 (defn register-user
@@ -88,6 +91,10 @@
   [{:keys [username email password]}]
   (do (create-user username email password)
       (resp/redirect "/index")))
+
+(defn activate-user [authid]
+  (let [guid (wcar* (car/get (str "auth:" authid)))]
+    (wcar* (car/hset (str "uid:" guid) "active" 1))))
 
 (defn- project-by-uid-exists? [repo uid]
   (uid-admin-of-pid? uid (get-pname-pid repo)))

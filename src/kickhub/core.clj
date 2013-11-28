@@ -132,7 +132,9 @@
   (GET "/about" [] (about-page))
   (GET "/tos" [] (tos-page))
   (GET "/login" {params :params} (login-page params))
-
+  (GET "/activate/:authid" [authid]
+       (do (activate-user authid)
+           (index-page {:msg "User activated, please log in"})))
   (GET "/user" req (if (friend/identity req)
                      (user-page req (friend/identity req))
                      (resp/redirect "/login")))
@@ -152,14 +154,9 @@
   (route/not-found (notfound-page))
   ;; (GET "/user/:uname/:pname" [uname pname] (projectpage pname))
   ;; (GET "/user/:uname" [uname] (userpage uname))
-  ;; (GET "/github" req (github req))
   ;; (GET "/add" req (add req))
   ;; (POST "/addproject" req (addprojectpage req))
   ;; (POST "/support" req (supportprojectpage req))
-  ;; (GET "/about" [] (abouttpl))
-  ;; (GET "/credits" [] (creditstpl))
-  ;; (GET "/roadmap" [] (roadmaptpl))
-  ;; (GET "/test" req (pr-str req))
   )
 
 (def ring-handler
