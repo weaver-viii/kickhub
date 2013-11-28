@@ -126,11 +126,10 @@
                  (partial creds/bcrypt-credential-fn load-user))]}))
 
 (defroutes app-routes
-  (GET "/" {params :params} (index-tba-page params))
-  (POST "/" {params :params} (email-to-mailing params))
-  (GET "/index" req (index-page (friend/identity req)))
-  (GET "/about" [] (about-page))
-  (GET "/tos" [] (tos-page))
+  ;; (GET "/" {params :params} (index-tba-page params))
+  ;; (POST "/" {params :params} (email-to-mailing params))
+  
+  (GET "/" req (index-page (friend/identity req)))
   (GET "/login" {params :params} (login-page params))
   (GET "/activate/:authid" [authid]
        (do (activate-user authid)
@@ -148,6 +147,8 @@
   (GET "/donation" [] (submit-donation-page nil nil))
   (POST "/donation" req (submit-donation-page req (friend/identity req)))
 
+  (GET "/about" [] (about-page))
+  (GET "/tos" [] (tos-page))
   (GET "/logout" req (logout req))
   (GET "/test" req (if-let [identity (friend/identity req)] (pr-str identity) "notloggedin"))
   (route/resources "/")
