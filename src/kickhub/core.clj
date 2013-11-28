@@ -134,6 +134,9 @@
   (GET "/activate/:authid" [authid]
        (do (activate-user authid)
            (index-page {:msg "User activated, please log in"})))
+  (GET "/confirm/:authid" [authid]
+       (do (confirm-transaction authid)
+           (index-page {:msg "Transaction confirmed, thanks"})))
   (GET "/user" req (if (friend/identity req)
                      (user-page req (friend/identity req))
                      (resp/redirect "/login")))

@@ -10,6 +10,8 @@
 | Done   | users            | list   | {1, ...}                    |                                              |
 | Done   | uid:1:apid       | set    | {1, 2}                      | set of projects for which user is admin      |
 | Done   | uid:1:atid       | set    | {1, 2}                      | set of transactions for which user is author |
+| Done   | uid:1:auth       | string | 3b7b0677...                 | get the auth key for a user                  |
+| Done   | auth:3b7b0677... | string | 2                           | get the user for a auth key                  |
 |--------+------------------+--------+-----------------------------+----------------------------------------------|
 | Done   | global:pid       | string | 1                           | project                                      |
 | Done   | projects         | list   | {1, 2}                      |                                              |
@@ -21,6 +23,8 @@
 | Done   | transactions     | list   | {1, 2}                      |                                              |
 | Done   | tid:1            | hash   | {created: by: amount:}      |                                              |
 | Done   | tid:1:auid       | string | 1                           | author uid of transaction tid                |
+| Done   | tid:1:auth       | string | 3b7b0677...                 | get the auth key for a transaction           |
+| Done   | auth:3b7b0677... | string | 2                           | get the transaction for a auth key           |
 |--------+------------------+--------+-----------------------------+----------------------------------------------|
 |        | uid:1:followers  | set    | {2}                         |                                              |
 |        | uid:2:following  | set    | {1}                         |                                              |

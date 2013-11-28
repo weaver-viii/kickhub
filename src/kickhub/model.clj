@@ -96,6 +96,10 @@
   (let [guid (wcar* (car/get (str "auth:" authid)))]
     (wcar* (car/hset (str "uid:" guid) "active" 1))))
 
+(defn confirm-transaction [authid]
+  (let [tid (wcar* (car/get (str "auth:" authid)))]
+    (wcar* (car/hset (str "tid:" tid) "confirmed" "1"))))
+
 (defn- project-by-uid-exists? [repo uid]
   (uid-admin-of-pid? uid (get-pname-pid repo)))
 
@@ -118,7 +122,8 @@
 (defn create-transaction
   "Create a new transaction."
   [amount pid uid fuid]
-  (let [tid (wcar* (car/incr "global:tid"))]
+  (let [tid (wcar* (car/incr "global:tid"))
+        authid (digest/md5 (str (System/currentTimeMillis) tid))]
     (wcar* (car/hmset
             (str "tid:" tid)
             "created" (java.util.Date.)
@@ -128,7 +133,9 @@
             "amount" amount
             "confirmed" "0")
            (car/rpush "trans" tid)
-           (car/set (str "tid:" tid ":auid") fuid)
+           (car/set (str "tid:" tid ":auid") fuid
+                    (str "tid:" tid ":auth") authid
+                    (str "auth:" authid) tid)
            (car/sadd (str "uid:" fuid ":atid") tid))))
 
 ;; (defn filter-out-active-repos
