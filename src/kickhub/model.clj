@@ -2,7 +2,7 @@
   (:require
    [digest :as digest]
    [clojure.walk :refer :all]
-   [kickhub.mail :refer :all]
+   [postal.core :as postal]
    [clojurewerkz.scrypt.core :as sc]
    [ring.util.response :as resp]
    [taoensso.carmine :as car]))
@@ -13,10 +13,7 @@
 (defmacro wcar* [& body]
   `(car/wcar server1-conn ~@body))
 
-(defn email-to-mailing [{:keys [email]}]
-  (do (wcar* (car/sadd "mailing" email))
-      (send-email-subscribe-mailing email)
-      (resp/redirect (str "/?m=" email))))
+;;; * General
 
 (defn get-username-uid
   "Given a username, return the corresponding uid."
@@ -68,6 +65,62 @@
 ;; (get-uid-transactions "1")
 ;; (get-uid-projects (get-username-uid "bzg"))
 
+;;; * Email
+
+(defn send-email [email subject body]
+  (postal/send-message
+   ^{:host "localhost"
+     :port 25}
+   {:from "Bastien <bzg@bzg.fr>"
+    :to email
+    :subject subject
+    :body body}))
+
+(defn send-email-activate-account [email authid]
+  (let [subject "Welcome to Kickhub -- please activate your account"
+        body (format "Welcome to Kickhub!
+
+Here is your activation link:
+http://localhost:8080/activate/%s
+
+-- 
+ Bastien" authid)]
+    (send-email email subject body)))
+    
+(defn send-email-subscribe-mailing [subscriber-email]
+  (let [subject "New subscriber for Kickhub"]
+    (send-email "bzg@bzg.fr" subject subscriber-email)))
+
+;; FIXME: use repo?
+(defn send-email-new-project [name repo uid]
+  (let [subject "Thanks for your new project!"
+        project_url (format "http://localhost:8080/project/%s" name)]
+    (send-email (get-uid-field uid "e")
+                subject
+                project_url)))
+
+;; FIXME use tid?
+(defn send-email-new-transaction [amount pid uid fuid tid authid]
+  (let [from_user (get-uid-field uid "u")
+        subject (format "You received some support from %s" from_user)
+        from_email (get-uid-field uid "e")
+        for_project (get-pid-field pid "name")
+        project_url (format "http://localhost:8080/project/%s" for_project)
+        user_url (format "http://localhost:8080/user/%s" from_user)
+        confirm_url (format "http://localhost:8080/confirm/%s" authid)]
+    (send-email from_email
+                subject
+                (str project_url "\n"
+                     user_url
+                     confirm_url))))
+
+(defn email-to-mailing [{:keys [email]}]
+  (do (wcar* (car/sadd "mailing" email))
+      (send-email-subscribe-mailing email)
+      (resp/redirect (str "/?m=" email))))
+
+;;; * Create users
+
 (defn create-user [username email password]
   (let [guid (wcar* (car/incr "global:uid"))
         authid (digest/md5 (str (System/currentTimeMillis) username))
@@ -109,6 +162,7 @@
   [name repo uid]
   (when-not (project-by-uid-exists? name uid)
     (let [pid (wcar* (car/incr "global:pid"))]
+      ;; Create the project in the db
       (wcar* (car/hmset
               (str "pid:" pid)
               "name" name
@@ -118,13 +172,16 @@
              (car/rpush "projects" pid)
              (car/mset (str "pid:" pid ":auid") uid
                        (str "project:" name ":pid") pid)
-             (car/sadd (str "uid:" uid ":apid") pid)))))
+             (car/sadd (str "uid:" uid ":apid") pid))
+      ;; Send an email to the author of the project
+      (send-email-new-project name repo uid))))
 
 (defn create-transaction
   "Create a new transaction."
   [amount pid uid fuid]
   (let [tid (wcar* (car/incr "global:tid"))
         authid (digest/md5 (str (System/currentTimeMillis) tid))]
+    ;; Create the transaction in the db
     (wcar* (car/hmset
             (str "tid:" tid)
             "created" (java.util.Date.)
@@ -137,7 +194,9 @@
            (car/mset (str "tid:" tid ":auid") fuid
                      (str "tid:" tid ":auth") authid
                      (str "auth:" authid) tid)
-           (car/sadd (str "uid:" fuid ":atid") tid))))
+           (car/sadd (str "uid:" fuid ":atid") tid))
+    ;; Send emails to the recipient of the transaction
+    (send-email-new-transaction amount pid uid fuid tid authid)))
 
 ;; (defn filter-out-active-repos
 ;;   "Filter out repos that user uid has already activated"
@@ -154,3 +213,10 @@
 ;;     (map #(keywordize-array-mapize
 ;;            (wcar* (car/hgetall (str id %))))
 ;;          plist)))
+
+;;; 
+
+;; Local Variables:
+;; eval: (orgstruct-mode 1)
+;; orgstruct-heading-prefix-regexp: ";;; "
+;; End:

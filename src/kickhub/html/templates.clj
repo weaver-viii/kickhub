@@ -6,6 +6,8 @@
    (cemerick.friend [workflows :as workflows])
    [net.cgrand.enlive-html :as html]))
 
+;;; * Utility functions
+
 (defmacro maybe-substitute
   ([expr] `(if-let [x# ~expr] (html/substitute x#) identity))
   ([expr & exprs] `(maybe-substitute (or ~expr ~@exprs))))
@@ -14,7 +16,7 @@
   ([expr] `(if-let [x# ~expr] (html/content x#) identity))
   ([expr & exprs] `(maybe-content (or ~expr ~@exprs))))
 
-;;; Templates
+;;; * Templates
 
 (html/deftemplate index-tpl "kickhub/html/base.html"
   [{:keys [container logo-link msg nomenu]}]
@@ -30,7 +32,7 @@
   ;; Set the content of the page
   [:#container] (maybe-content container))
 
-;;; Snippets
+;;; * Snippets
 
 (html/defsnippet tba "kickhub/html/messages.html" [:#tba] [])
 (html/defsnippet notfound "kickhub/html/messages.html" [:#notfound] [])
@@ -40,7 +42,7 @@
 (html/defsnippet news "kickhub/html/news.html" [:#allnews] [])
 (html/defsnippet profile "kickhub/html/profile.html" [:#profile] [])
 
-;;; Projects and donations snippets
+;;; * Projects and donations snippets
 
 (def ^:dynamic *project-sel* [[:.project (html/nth-of-type 1)] :> html/first-child])
 (html/defsnippet my-project "kickhub/html/lists.html" *project-sel*
@@ -63,7 +65,7 @@
 ;; (html/content (map #(my-project %) (get-uid-projects (get-username-uid "bzg"))))
 ;; (html/content (map #(my-donation %) (get-uid-transactions (get-username-uid "bzg"))))
 
-;;; Other snippets
+;;; * Other snippets
 
 (html/defsnippet login "kickhub/html/forms.html" [:#login] [])
 (html/defsnippet register "kickhub/html/forms.html" [:#register] [])
@@ -72,7 +74,7 @@
 (html/defsnippet submit-donation "kickhub/html/forms.html" [:#submit-donation] [])
 (html/defsnippet submit-profile "kickhub/html/forms.html" [:#submit-profile] [])
 
-;;; Views
+;;; * Views
 
 (defn index-tba-page [params]
   (index-tpl {:container (concat (tba) (submit-email))
@@ -103,21 +105,23 @@
   (let [params (clojure.walk/keywordize-keys (:form-params req))
         name (:name params)
         repo (:repo params)
-        uid (get-username-uid (:current id))]
+        username (:current id)
+        uid (get-username-uid username)]
   (if params
-    (do (create-project name repo uid))
-        (resp/redirect "/user"))
-    (index-tpl {:container (submit-project)})))
+    (do (create-project name repo uid)
+        (resp/redirect (str "/user/" username)))
+    (index-tpl {:container (submit-project)}))))
 
 (defn submit-donation-page [req id]
   (let [params (clojure.walk/keywordize-keys (:form-params req))
         amount (:amount params)
         pid (:pid params)
-        fuid (get-username-uid (:current id))
+        username (:current id)
+        fuid (get-username-uid username)
         uid (get-pid-field pid "by")]
     (if params
       (do (create-transaction amount pid uid fuid)
-          (resp/redirect "/user"))
+          (resp/redirect (str "/user/" username)))
       (index-tpl {:container (submit-donation)}))))
 
 (defn user-page [req]
@@ -135,7 +139,7 @@
   (let [;; params (clojure.walk/keywordize-keys (:form-params req))
         route-params (clojure.walk/keywordize-keys (:route-params req))
         pname (:pname route-params)
-        pid (get-pname-pid "glabou")
+        pid (get-pname-pid pname)
         id (friend/identity req)]
     (index-tpl {:container (str "Project: " (get-pid-field pid "name")
                                 " by " (get-uid-field
@@ -146,7 +150,12 @@
 (defn about-page [] (index-tpl {:container (about) :logo-link "/" :nomenu ""}))
 (defn tos-page [] (index-tpl {:container (tos) :nomenu ""}))
 
-;;; Testing
+;;; * Testing
 
 ;; (defn render [t] (apply str t))
 ;; (render (html/emit* (my-projects "2")))
+
+;; Local Variables:
+;; eval: (orgstruct-mode 1)
+;; orgstruct-heading-prefix-regexp: ";;; "
+;; End:

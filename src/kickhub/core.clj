@@ -14,6 +14,82 @@
    [clojurewerkz.scrypt.core :as sc]
    [friend-oauth2.workflow :as oauth2]))
 
+;;; * Friend
+
+(defn- logout [req]
+  (friend/logout* (resp/redirect (str (:context req) "/"))))
+
+(defn- load-user
+  "Load a user from her username."
+  [username]
+  (let [uid (get-username-uid username)
+        password (get-uid-field uid "p")]
+    {:username username :password password :roles #{::users}}))
+
+;; Variant of bcrypt-credential-fn using scrypt
+(defn- scrypt-credential-fn
+  [load-credentials-fn {:keys [username password]}]
+  (when-let [creds (load-credentials-fn username)]
+    (let [password-key (or (-> creds meta ::password-key) :password)]
+      (when (sc/verify password (get creds password-key))
+        (dissoc creds password-key)))))
+
+(defn- wrap-friend [handler]
+  "Wrap friend authentication around handler."
+  (friend/authenticate
+   handler
+   {:allow-anon? true
+    :workflows [(workflows/interactive-form
+                 :allow-anon? true
+                 :login-uri "/login"
+                 ;; :redirect-on-auth? "/" ;; This is the default
+                 :credential-fn
+                 (partial scrypt-credential-fn load-user))]}))
+
+;;; * Routes
+
+(defroutes app-routes
+  ;; (GET "/" {params :params} (index-tba-page params))
+  ;; (POST "/" {params :params} (email-to-mailing params))
+  
+  (GET "/" req (index-page req))
+  (GET "/login" req (login-page req))
+  (GET "/activate/:authid" [authid]
+       (friend/authorize
+        #{::users}
+        (do (activate-user authid)
+            (index-page nil {:msg "User activated, please log in"
+                             :nomenu ""}))))
+  (GET "/confirm/:authid" [authid]
+       (friend/authorize
+        #{::users}
+        (do (confirm-transaction authid)
+            (index-page nil {:msg "Transaction confirmed, thanks"}))))
+
+  (GET "/user/:username" req (user-page req))
+  (GET "/project/:pname" req (project-page req))
+
+  (GET "/register" [] (register-page nil))
+  (POST "/register" {params :params} (register-user params))
+
+  (GET "/newproject" [] (submit-project-page nil nil))
+  (POST "/newproject" req (submit-project-page req (friend/identity req)))
+  (GET "/donation" [] (submit-donation-page nil nil))
+  (POST "/donation" req (submit-donation-page req (friend/identity req)))
+
+  (GET "/about" [] (about-page))
+  (GET "/tos" [] (tos-page))
+  (GET "/logout" req (logout req))
+  (GET "/test" req (if-let [identity (friend/identity req)] (pr-str identity) "notloggedin"))
+  (route/resources "/")
+  (route/not-found (notfound-page)))
+
+(def ring-handler
+  (middleware/app-handler
+   [(wrap-friend app-routes)]))
+
+;;; * Old github auth code
+
 ;; (defn- authenticated? [req]
 ;;   (get-in req [:session :cemerick.friend/identity]))
 
@@ -66,114 +142,8 @@
 ;;        :access-token-parsefn access-token-parsefn
 ;;        :config-auth friend-config-auth})]}))
 
-;; (defn- addprojectpage [req]
-;;   (if (authenticated? req)
-;;     (let [params (clojure.walk/keywordize-keys (:form-params req))
-;;           repo (:repo params)
-;;           fuid (:uid params)]
-;;       (if (create-project repo fuid)
-;;         (resp/redirect (str (:context req) "/"))))
-;;     (resp/redirect (str (:context req) "/"))))
-        
-;; (defn- supportprojectpage [req]
-;;   (if (authenticated? req)
-;;     (let [params (clojure.walk/keywordize-keys (:form-params req))
-;;           amount (:amount params)
-;;           pid (:pid params)
-;;           uid (:uid params)
-;;           authentications
-;;           (get-in req [:session :cemerick.friend/identity :authentications])
-;;           access-token (:access_token (second (first authentications)))
-;;           basic (github-user-info access-token)
-;;           fuid (:login basic)]
-;;       (create-transaction amount pid uid fuid)
-;;       (resp/redirect (str (:context req) "/")))
-;;     (resp/redirect (str (:context req) "/"))))
+;; Local Variables:
+;; eval: (orgstruct-mode 1)
+;; orgstruct-heading-prefix-regexp: ";;; "
+;; End:
 
-;; (defn- projectpage [pname]
-;;   (let [pid (get-pname-pid pname)]
-;;     (projecttpl
-;;      (assoc (keywordize-array-mapize (get-pid-all pid))
-;;        :pid pid))))
-
-;; (defn- userpage [uname]
-;;   (let [uid (get-username-uid uname)
-;;         infos (keywordize-array-mapize (get-uid-all uid))]
-;;     (usertpl (assoc infos :user-projects
-;;                     (get-uid-projects uid)))))
-
-(defn- logout [req]
-  (friend/logout* (resp/redirect (str (:context req) "/"))))
-
-(defn- load-user
-  "Load a user from her username."
-  [username]
-  (let [uid (get-username-uid username)
-        password (get-uid-field uid "p")]
-    {:username username :password password :roles #{::users}}))
-
-;; Variant of bcrypt-credential-fn using scrypt
-(defn scrypt-credential-fn
-  [load-credentials-fn {:keys [username password]}]
-  (when-let [creds (load-credentials-fn username)]
-    (let [password-key (or (-> creds meta ::password-key) :password)]
-      (when (sc/verify password (get creds password-key))
-        (dissoc creds password-key)))))
-
-(defn wrap-friend [handler]
-  "Wrap friend authentication around handler."
-  (friend/authenticate
-   handler
-   {:allow-anon? true
-    :workflows [(workflows/interactive-form
-                 :allow-anon? true
-                 :login-uri "/login"
-                 ;; :redirect-on-auth? "/" ;; This is the default
-                 :credential-fn
-                 (partial scrypt-credential-fn load-user))]}))
-
-(defroutes app-routes
-  ;; (GET "/" {params :params} (index-tba-page params))
-  ;; (POST "/" {params :params} (email-to-mailing params))
-  
-  (GET "/" req (index-page req))
-  (GET "/login" req (login-page req))
-  (GET "/activate/:authid" [authid]
-       (friend/authorize
-        #{::users}
-        (do (activate-user authid)
-            (index-page nil {:msg "User activated, please log in"
-                             :nomenu ""}))))
-  (GET "/confirm/:authid" [authid]
-       (friend/authorize
-        #{::users}
-        (do (confirm-transaction authid)
-            (index-page nil {:msg "Transaction confirmed, thanks"}))))
-
-  (GET "/user/:username" req (user-page req))
-  (GET "/project/:pname" req (project-page req))
-
-  (GET "/register" [] (register-page nil))
-  (POST "/register" {params :params} (register-user params))
-
-  (GET "/project" [] (submit-project-page nil nil))
-  (POST "/project" req (submit-project-page req (friend/identity req)))
-  (GET "/donation" [] (submit-donation-page nil nil))
-  (POST "/donation" req (submit-donation-page req (friend/identity req)))
-
-  (GET "/about" [] (about-page))
-  (GET "/tos" [] (tos-page))
-  (GET "/logout" req (logout req))
-  (GET "/test" req (if-let [identity (friend/identity req)] (pr-str identity) "notloggedin"))
-  (route/resources "/")
-  (route/not-found (notfound-page))
-  ;; (GET "/user/:uname/:pname" [uname pname] (projectpage pname))
-  ;; (GET "/user/:uname" [uname] (userpage uname))
-  ;; (GET "/add" req (add req))
-  ;; (POST "/addproject" req (addprojectpage req))
-  ;; (POST "/support" req (supportprojectpage req))
-  )
-
-(def ring-handler
-  (middleware/app-handler
-   [(wrap-friend app-routes)]))
