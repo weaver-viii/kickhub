@@ -128,7 +128,7 @@
     :workflows [(workflows/interactive-form
                  :allow-anon? true
                  :login-uri "/login"
-                 :default-landing-uri "/"
+                 ;; :redirect-on-auth? "/" ;; This is the default
                  :credential-fn
                  (partial scrypt-credential-fn load-user))]}))
 
@@ -136,18 +136,22 @@
   ;; (GET "/" {params :params} (index-tba-page params))
   ;; (POST "/" {params :params} (email-to-mailing params))
   
-  (GET "/" req (index-page (friend/identity req)))
-  (GET "/login" {params :params} (login-page params))
+  (GET "/" req (index-page req))
+  (GET "/login" req (login-page req))
   (GET "/activate/:authid" [authid]
-       (do (activate-user authid)
-           (index-page {:msg "User activated, please log in"})))
+       (friend/authorize
+        #{::users}
+        (do (activate-user authid)
+            (index-page nil {:msg "User activated, please log in"
+                             :nomenu ""}))))
   (GET "/confirm/:authid" [authid]
-       (do (confirm-transaction authid)
-           (index-page {:msg "Transaction confirmed, thanks"})))
-  (GET "/user" req (if (friend/identity req)
-                     (user-page req (friend/identity req))
-                     (resp/redirect "/login")))
-  (GET "/profile" [] (profile-page))
+       (friend/authorize
+        #{::users}
+        (do (confirm-transaction authid)
+            (index-page nil {:msg "Transaction confirmed, thanks"}))))
+
+  (GET "/user/:username" req (user-page req))
+  (GET "/project/:pname" req (project-page req))
 
   (GET "/register" [] (register-page nil))
   (POST "/register" {params :params} (register-user params))

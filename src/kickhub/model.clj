@@ -101,13 +101,13 @@
   (let [tid (wcar* (car/get (str "auth:" authid)))]
     (wcar* (car/hset (str "tid:" tid) "confirmed" "1"))))
 
-(defn- project-by-uid-exists? [repo uid]
-  (uid-admin-of-pid? uid (get-pname-pid repo)))
+(defn- project-by-uid-exists? [name uid]
+  (uid-admin-of-pid? uid (get-pname-pid name)))
 
 (defn create-project
   "Create a new project."
   [name repo uid]
-  (when-not (project-by-uid-exists? repo uid)
+  (when-not (project-by-uid-exists? name uid)
     (let [pid (wcar* (car/incr "global:pid"))]
       (wcar* (car/hmset
               (str "pid:" pid)
@@ -117,7 +117,7 @@
               "by" uid)
              (car/rpush "projects" pid)
              (car/mset (str "pid:" pid ":auid") uid
-                       (str "project:" repo ":pid") pid)
+                       (str "project:" name ":pid") pid)
              (car/sadd (str "uid:" uid ":apid") pid)))))
 
 (defn create-transaction

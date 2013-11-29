@@ -2,6 +2,8 @@
   (:require
    [kickhub.model :refer :all]
    [ring.util.response :as resp]
+   [cemerick.friend :as friend]
+   (cemerick.friend [workflows :as workflows])
    [net.cgrand.enlive-html :as html]))
 
 (defmacro maybe-substitute
@@ -78,18 +80,21 @@
                      (str (:m params) " is now subscribed")
                      "")}))
 
-(defn index-page [auth?]
-  (index-tpl {:container (news)
-              :nomenu (when auth? "")
-              :msg (if auth?
-                     "You are now logged in"
-                     "Please login or register")}))
+(defn index-page [req & {:keys [msg]}]
+  (let [id (friend/identity req)]
+    (index-tpl {:container (news)
+                :nomenu (when id "")
+                :msg (or msg (if id
+                               "You are now logged in"
+                               "Please login or register"))})))
 
-(defn login-page [params]
-  (index-tpl {:container (login)
-              :msg (if (= (:login_failed params) "Y")
-                     "Error when logging in..."
-                     "")}))
+(defn login-page [req]
+  (let [params (clojure.walk/keywordize-keys (:form-params req))
+        id (friend/identity req)]
+    (index-tpl {:container (if id "You are already logged in" (login))
+                :msg (if (= (:login_failed params) "Y")
+                       "Error when logging in..."
+                       "")})))
 
 (defn register-page [params]
   (index-tpl {:container (register)}))
@@ -115,18 +120,31 @@
           (resp/redirect "/user"))
       (index-tpl {:container (submit-donation)}))))
 
-(defn user-page [req id]
-  (let [params (clojure.walk/keywordize-keys (:form-params req))
-        uid (get-username-uid (:current id))]
+(defn user-page [req]
+  (let [;; params (clojure.walk/keywordize-keys (:form-params req))
+        route-params (clojure.walk/keywordize-keys (:route-params req))
+        username (:username route-params)
+        uid (get-username-uid username)
+        id (friend/identity req)]
     (index-tpl {:container
                 (concat (my-projects (get-uid-projects uid))
-                        (my-donations (get-uid-transactions uid)))})))
+                        (my-donations (get-uid-transactions uid)))
+                :nomenu (when id "")})))
 
-(defn notfound-page [] (index-tpl {:container (notfound)}))
-(defn about-page [] (index-tpl {:container (about) :logo-link "/"}))
-(defn tos-page [] (index-tpl {:container (tos)}))
-(defn profile-page [] (index-tpl {:container (profile)}))
-(defn submit-profile-page [] (index-tpl {:container (submit-profile)}))
+(defn project-page [req]
+  (let [;; params (clojure.walk/keywordize-keys (:form-params req))
+        route-params (clojure.walk/keywordize-keys (:route-params req))
+        pname (:pname route-params)
+        pid (get-pname-pid "glabou")
+        id (friend/identity req)]
+    (index-tpl {:container (str "Project: " (get-pid-field pid "name")
+                                " by " (get-uid-field
+                                        (get-pid-field pid "by") "u"))
+                :nomenu (when id "")})))
+
+(defn notfound-page [] (index-tpl {:container (notfound) :nomenu ""}))
+(defn about-page [] (index-tpl {:container (about) :logo-link "/" :nomenu ""}))
+(defn tos-page [] (index-tpl {:container (tos) :nomenu ""}))
 
 ;;; Testing
 
