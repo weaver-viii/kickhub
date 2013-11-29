@@ -47,7 +47,9 @@
 (def ^:dynamic *project-sel* [[:.project (html/nth-of-type 1)] :> html/first-child])
 (html/defsnippet my-project "kickhub/html/lists.html" *project-sel*
   [{:keys [name]}]
-  [:a] (html/content name))
+  [:a] (html/do->
+        (html/content name)
+        (html/set-attr :href (str "http://localhost:8080/project/" name))))
 (html/defsnippet my-projects "kickhub/html/lists.html" [:#my_projects]
   [projects]
   [:#content] (html/content (map #(my-project %) projects)))
@@ -55,7 +57,7 @@
 (def ^:dynamic *donation-sel* [[:.donation (html/nth-of-type 1)] :> html/first-child])
 (html/defsnippet my-donation "kickhub/html/lists.html" *donation-sel*
   [{:keys [amount]}]
-  [:a] (html/content amount))
+  [:span] (html/content amount))
 (html/defsnippet my-donations "kickhub/html/lists.html" [:#my_donations]
   [donations]
   [:#content1] (html/content (map #(my-donation %) donations)))
