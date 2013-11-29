@@ -3,6 +3,7 @@
    [digest :as digest]
    [clojure.walk :refer :all]
    [kickhub.mail :refer :all]
+   [clojurewerkz.scrypt.core :as sc]
    [ring.util.response :as resp]
    [taoensso.carmine :as car]))
 
@@ -76,12 +77,12 @@
           (str "uid:" guid)
           "u" username
           "e" email
-          "p" password
+          "p" (sc/encrypt password 16384 8 1)
           "picurl" picurl
           "created" (java.util.Date.))
-         (car/set (str "user:" username ":uid") guid
-                  (str "uid:" guid ":auth") authid
-                  (str "auth:" authid) guid)
+         (car/mset (str "user:" username ":uid") guid
+                   (str "uid:" guid ":auth") authid
+                   (str "auth:" authid) guid)
          (car/rpush "users" guid))
         (send-email-activate-account email authid)
         (resp/redirect "/"))))
@@ -115,9 +116,9 @@
               "created" (java.util.Date.)
               "by" uid)
              (car/rpush "projects" pid)
-             (car/set (str "pid:" pid ":auid") uid)
-             (car/sadd (str "uid:" uid ":apid") pid)
-             (car/set (str "project:" repo ":pid") pid)))))
+             (car/mset (str "pid:" pid ":auid") uid
+                       (str "project:" repo ":pid") pid)
+             (car/sadd (str "uid:" uid ":apid") pid)))))
 
 (defn create-transaction
   "Create a new transaction."
@@ -133,9 +134,9 @@
             "amount" amount
             "confirmed" "0")
            (car/rpush "trans" tid)
-           (car/set (str "tid:" tid ":auid") fuid
-                    (str "tid:" tid ":auth") authid
-                    (str "auth:" authid) tid)
+           (car/mset (str "tid:" tid ":auid") fuid
+                     (str "tid:" tid ":auth") authid
+                     (str "auth:" authid) tid)
            (car/sadd (str "uid:" fuid ":atid") tid))))
 
 ;; (defn filter-out-active-repos

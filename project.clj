@@ -11,6 +11,7 @@
    [compojure "1.1.5"]
    [com.draines/postal "1.11.0"]
    [lib-noir "0.6.8"]
+   [clojurewerkz/scrypt "1.0.0"]
    [ring-server "0.3.0"]
    [digest "1.4.3"]
    [com.taoensso/carmine "2.2.1"]
