@@ -6,7 +6,7 @@
   :immutant {:context-path "/" :nrepl-port 4005}
   :dependencies
   [[org.clojure/clojure "1.5.1"]
-   [com.cemerick/friend "0.1.5"]
+   [com.cemerick/friend "0.2.0"]
    [friend-oauth2 "0.0.4"]
    [compojure "1.1.5"]
    [com.draines/postal "1.11.0"]
