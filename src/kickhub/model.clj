@@ -91,7 +91,7 @@
   "Register a new user"
   [{:keys [username email password]}]
   (do (create-user username email password)
-      (resp/redirect "/index")))
+      (resp/redirect "/")))
 
 (defn activate-user [authid]
   (let [guid (wcar* (car/get (str "auth:" authid)))]
