@@ -1,18 +1,13 @@
 (ns kickhub.core
-  (:require
-   [noir.util.middleware :as middleware]
-   [ring.util.response :as resp]
-   [kickhub.model :refer :all]
-   ;; [kickhub.github :refer :all]
-   [kickhub.html.templates :refer :all]
-   [ring.util.codec :as codec]
-   [compojure.core :as compojure :refer (GET POST defroutes)]
-   (compojure [handler :as handler]
-              [route :as route])
-   [cemerick.friend :as friend]
-   (cemerick.friend [workflows :as workflows])
-   [clojurewerkz.scrypt.core :as sc]
-   [friend-oauth2.workflow :as oauth2]))
+  (:require [cemerick.friend :as friend]
+            [cemerick.friend.workflows :as workflows]
+            [clojurewerkz.scrypt.core :as sc]
+            [compojure.core :refer [GET POST defroutes]]
+            [compojure.route :as route]
+            [kickhub.html.templates :refer :all]
+            [kickhub.model :refer :all]
+            [noir.util.middleware :as middleware]
+            [ring.util.response :as resp]))
 
 ;;; * Friend
 

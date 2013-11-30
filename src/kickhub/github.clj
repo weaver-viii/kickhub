@@ -1,7 +1,6 @@
 (ns kickhub.github
-  (:require
-   [clj-http.client :as http]
-   [cheshire.core :as json]))
+  (:require [cheshire.core :as json]
+            [clj-http.client :as http]))
 
 (defn github-api-response
   "Get Github API response."

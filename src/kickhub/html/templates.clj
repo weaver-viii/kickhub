@@ -1,10 +1,8 @@
 (ns kickhub.html.templates
-  (:require
-   [kickhub.model :refer :all]
-   [ring.util.response :as resp]
-   [cemerick.friend :as friend]
-   (cemerick.friend [workflows :as workflows])
-   [net.cgrand.enlive-html :as html]))
+  (:require [cemerick.friend :as friend]
+            [kickhub.model :refer :all]
+            [net.cgrand.enlive-html :as html]
+            [ring.util.response :as resp]))
 
 ;;; * Utility functions
 
