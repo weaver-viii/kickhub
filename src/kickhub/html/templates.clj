@@ -2,7 +2,10 @@
   (:require [cemerick.friend :as friend]
             [kickhub.model :refer :all]
             [net.cgrand.enlive-html :as html]
+            [net.cgrand.reload :as reload]
             [ring.util.response :as resp]))
+
+(reload/auto-reload *ns*)
 
 ;;; * Utility functions
 
@@ -16,7 +19,8 @@
 
 ;;; * Templates
 
-(html/deftemplate index-tpl "kickhub/html/base.html"
+(html/deftemplate ^{:doc "main template"}
+  index-tpl "kickhub/html/base.html"
   [{:keys [container logo-link msg nomenu]}]
   ;; In /about, the logo points to the index page
   [:#menu] (maybe-substitute nomenu)
@@ -150,10 +154,7 @@
 (defn about-page [] (index-tpl {:container (about) :logo-link "/" :nomenu ""}))
 (defn tos-page [] (index-tpl {:container (tos) :nomenu ""}))
 
-;;; * Testing
-
-;; (defn render [t] (apply str t))
-;; (render (html/emit* (my-projects "2")))
+;;; * Local variables
 
 ;; Local Variables:
 ;; eval: (orgstruct-mode 1)
