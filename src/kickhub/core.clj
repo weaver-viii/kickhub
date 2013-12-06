@@ -4,10 +4,14 @@
             [clojurewerkz.scrypt.core :as sc]
             [compojure.core :refer [GET POST defroutes]]
             [compojure.route :as route]
+            [friend-oauth2.workflow :as oauth2]
+            [friend-oauth2.util :as oauth2-util]
             [kickhub.html.templates :refer :all]
             [kickhub.model :refer :all]
+            [kickhub.github :refer :all]
             [noir.util.middleware :as middleware]
-            [ring.util.response :as resp]))
+            [ring.util.response :as resp]
+            [ring.util.codec :as codec]))
 
 ;;; * Friend
 
@@ -40,6 +44,57 @@
                  ;; :redirect-on-auth? "/" ;; This is the default
                  :credential-fn
                  (partial scrypt-credential-fn load-user))]}))
+
+;;; ** Github login
+
+(def gh-client-config
+  {:client-id (System/getenv "github_client_id")
+   :client-secret (System/getenv "github_client_secret")
+   :callback {:domain (System/getenv "github_client_domain")
+              :path "/github.callback"}})
+
+(def friend-uri-config
+  {:authentication-uri
+   {:url "https://github.com/login/oauth/authorize"
+    :query {:client_id (:client-id gh-client-config)
+            :response_type "code"
+            :redirect_uri
+            (oauth2-util/format-config-uri gh-client-config)
+            :scope "user:email"}}
+   :access-token-uri
+   {:url "https://github.com/login/oauth/access_token"
+    :query {:client_id (:client-id gh-client-config)
+            :client_secret (:client-secret gh-client-config)
+            :grant_type "authorization_code"
+            :redirect_uri
+            (oauth2-util/format-config-uri gh-client-config)
+            :code ""}}})
+
+(def friend-config-auth {:roles #{:kickhub.core/users}})
+
+;; OAuth2 config
+(defn access-token-parsefn
+  "Parse response to get an access-token."
+  [response]
+  (-> response
+      :body
+      codec/form-decode
+      clojure.walk/keywordize-keys
+      :access_token))
+
+(defn wrap-friend-github [handler]
+  "Wrap friend authentication around handler."
+  (friend/authenticate
+   handler
+   {:allow-anon? true
+    :default-landing-uri "/"
+    :workflows
+    [(oauth2/workflow
+      {:client-config gh-client-config
+       :uri-config friend-uri-config
+       :login-uri "/github"
+       :access-token-parsefn access-token-parsefn
+       :config-auth friend-config-auth})]}))
 
 ;;; * Routes
 
@@ -81,61 +136,13 @@
 
 (def ring-handler
   (middleware/app-handler
-   [(wrap-friend app-routes)]))
+   [(wrap-friend-github (wrap-friend app-routes))]))
 
 ;;; * Old github auth code
 
 ;; (defn- authenticated? [req]
 ;;   (get-in req [:session :cemerick.friend/identity]))
 
-;; (def gh-client-config
-;;   {:client-id (System/getenv "github_client_id")
-;;    :client-secret (System/getenv "github_client_secret")
-;;    :callback {:domain (System/getenv "github_client_domain")
-;;               :path "/github.callback"}})
-
-;; (def friend-uri-config
-;;   {:authentication-uri
-;;    {:url "https://github.com/login/oauth/authorize"
-;;     :query {:client_id (:client-id gh-client-config)
-;;             :response_type "code"
-;;             :redirect_uri
-;;             (oauth2/format-config-uri gh-client-config)
-;;             :scope "user"}}
-;;    :access-token-uri
-;;    {:url "https://github.com/login/oauth/access_token"
-;;     :query {:client_id (:client-id gh-client-config)
-;;             :client_secret (:client-secret gh-client-config)
-;;             :grant_type "authorization_code"
-;;             :redirect_uri
-;;             (oauth2/format-config-uri gh-client-config)
-;;             :code ""}}})
-
-;; (def friend-config-auth {:roles #{:kickhub.core/user}})
-
-;; OAuth2 config
-;; (defn access-token-parsefn
-;;   "Parse response to get an access-token."
-;;   [response]
-;;   (-> response
-;;       :body
-;;       codec/form-decode
-;;       clojure.walk/keywordize-keys
-;;       :access_token))
-
-;; (defn wrap-friend [handler]
-;;   "Wrap friend authentication around handler."
-;;   (friend/authenticate
-;;    handler
-;;    {:allow-anon? true
-;;     :default-landing-uri "/"
-;;     :workflows
-;;     [(oauth2/workflow
-;;       {:client-config gh-client-config
-;;        :uri-config friend-uri-config
-;;        :login-uri "/github"
-;;        :access-token-parsefn access-token-parsefn
-;;        :config-auth friend-config-auth})]}))
 
 ;; Local Variables:
 ;; eval: (orgstruct-mode 1)
