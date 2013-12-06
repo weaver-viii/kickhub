@@ -19,7 +19,7 @@
 
 ;;; * Templates
 
-(html/deftemplate ^{:doc "main template"}
+(html/deftemplate ^{:doc "Main index template"}
   index-tpl "kickhub/html/base.html"
   [{:keys [container logo-link msg nomenu]}]
   ;; In /about, the logo points to the index page
@@ -36,30 +36,42 @@
 
 ;;; * Snippets
 
-(html/defsnippet tba "kickhub/html/messages.html" [:#tba] [])
-(html/defsnippet notfound "kickhub/html/messages.html" [:#notfound] [])
-(html/defsnippet about "kickhub/html/messages.html" [:#about] [])
-(html/defsnippet tos "kickhub/html/messages.html" [:#tos] [])
+(html/defsnippet ^{:doc "Snippet for the TBA page."}
+  tba "kickhub/html/messages.html" [:#tba] [])
+(html/defsnippet ^{:doc "Snippet for the 404 page."}
+  notfound "kickhub/html/messages.html" [:#notfound] [])
+(html/defsnippet ^{:doc "Snippet for the /about page."}
+  about "kickhub/html/messages.html" [:#about] [])
+(html/defsnippet ^{:doc "Snippet for the /tos page."}
+  tos "kickhub/html/messages.html" [:#tos] [])
 
-(html/defsnippet news "kickhub/html/news.html" [:#allnews] [])
-(html/defsnippet profile "kickhub/html/profile.html" [:#profile] [])
+(html/defsnippet ^{:doc "Snippet for the news."}
+  news "kickhub/html/news.html" [:#allnews] [])
+(html/defsnippet ^{:doc "Snippet for the profile."}
+  profile "kickhub/html/profile.html" [:#profile] [])
 
 ;;; * Projects and donations snippets
 
-(def ^:dynamic *project-sel* [[:.project (html/nth-of-type 1)] :> html/first-child])
+(def ^{:doc "Enlive project selector" :dynamic true}
+  *project-sel* [[:.project (html/nth-of-type 1)] :> html/first-child])
+
 (html/defsnippet my-project "kickhub/html/lists.html" *project-sel*
   [{:keys [name]}]
   [:a] (html/do->
         (html/content name)
         (html/set-attr :href (str "http://localhost:8080/project/" name))))
+
 (html/defsnippet my-projects "kickhub/html/lists.html" [:#my_projects]
   [projects]
   [:#content] (html/content (map #(my-project %) projects)))
 
-(def ^:dynamic *donation-sel* [[:.donation (html/nth-of-type 1)] :> html/first-child])
+(def ^{:doc "Enlive donation selector" :dynamic true}
+  *donation-sel* [[:.donation (html/nth-of-type 1)] :> html/first-child])
+
 (html/defsnippet my-donation "kickhub/html/lists.html" *donation-sel*
   [{:keys [amount]}]
   [:span] (html/content amount))
+
 (html/defsnippet my-donations "kickhub/html/lists.html" [:#my_donations]
   [donations]
   [:#content1] (html/content (map #(my-donation %) donations)))
@@ -71,22 +83,32 @@
 
 ;;; * Other snippets
 
-(html/defsnippet login "kickhub/html/forms.html" [:#login] [])
-(html/defsnippet register "kickhub/html/forms.html" [:#register] [])
-(html/defsnippet submit-email "kickhub/html/forms.html" [:#submit-email] [])
-(html/defsnippet submit-project "kickhub/html/forms.html" [:#submit-project] [])
-(html/defsnippet submit-donation "kickhub/html/forms.html" [:#submit-donation] [])
-(html/defsnippet submit-profile "kickhub/html/forms.html" [:#submit-profile] [])
+(html/defsnippet ^{:doc "Snippet for the login form."}
+  login "kickhub/html/forms.html" [:#login] [])
+(html/defsnippet ^{:doc "Snippet for the register form."}
+  register "kickhub/html/forms.html" [:#register] [])
+(html/defsnippet ^{:doc "Snippet for the submit email form."}
+  submit-email "kickhub/html/forms.html" [:#submit-email] [])
+(html/defsnippet ^{:doc "Snippet for the submit project form."}
+  submit-project "kickhub/html/forms.html" [:#submit-project] [])
+(html/defsnippet ^{:doc "Snippet for the submit donation form."}
+  submit-donation "kickhub/html/forms.html" [:#submit-donation] [])
+(html/defsnippet ^{:doc "Snippet for the submit profile form."}
+  submit-profile "kickhub/html/forms.html" [:#submit-profile] [])
 
 ;;; * Views
 
-(defn index-tba-page [params]
+(defn index-tba-page
+  "Generate the index TBA page."
+  [params]
   (index-tpl {:container (concat (tba) (submit-email))
               :msg (if (:m params)
                      (str (:m params) " is now subscribed")
                      "")}))
 
-(defn index-page [req & {:keys [msg]}]
+(defn index-page
+  "Generate the index page."
+  [req & {:keys [msg]}]
   (let [id (friend/identity req)]
     (index-tpl {:container (news)
                 :nomenu (when id "")
@@ -94,7 +116,9 @@
                                "You are now logged in"
                                "Please login or register"))})))
 
-(defn login-page [req]
+(defn login-page
+  "Generate the login page."
+  [req]
   (let [params (clojure.walk/keywordize-keys (:form-params req))
         id (friend/identity req)]
     (index-tpl {:container (if id "You are already logged in" (login))
@@ -102,10 +126,14 @@
                        "Error when logging in..."
                        "")})))
 
-(defn register-page [params]
+(defn register-page
+  "Generate the register page."
+  [params]
   (index-tpl {:container (register)}))
 
-(defn submit-project-page [req id]
+(defn submit-project-page
+  "Generate the page to submit a project."
+  [req id]
   (let [params (clojure.walk/keywordize-keys (:form-params req))
         name (:name params)
         repo (:repo params)
@@ -116,7 +144,9 @@
         (resp/redirect (str "/user/" username)))
     (index-tpl {:container (submit-project)}))))
 
-(defn submit-donation-page [req id]
+(defn submit-donation-page
+  "Generate the page to submit a donation."
+  [req id]
   (let [params (clojure.walk/keywordize-keys (:form-params req))
         amount (:amount params)
         pid (:pid params)
@@ -128,7 +158,9 @@
           (resp/redirect (str "/user/" username)))
       (index-tpl {:container (submit-donation)}))))
 
-(defn user-page [req]
+(defn user-page
+  "Generate the page to display a user information."
+  [req]
   (let [;; params (clojure.walk/keywordize-keys (:form-params req))
         route-params (clojure.walk/keywordize-keys (:route-params req))
         username (:username route-params)
@@ -139,7 +171,9 @@
                         (my-donations (get-uid-transactions uid)))
                 :nomenu (when id "")})))
 
-(defn project-page [req]
+(defn project-page
+  "Generate the page to display a project information."
+  [req]
   (let [;; params (clojure.walk/keywordize-keys (:form-params req))
         route-params (clojure.walk/keywordize-keys (:route-params req))
         pname (:pname route-params)
@@ -150,9 +184,14 @@
                                         (get-pid-field pid "by") "u"))
                 :nomenu (when id "")})))
 
-(defn notfound-page [] (index-tpl {:container (notfound) :nomenu ""}))
-(defn about-page [] (index-tpl {:container (about) :logo-link "/" :nomenu ""}))
-(defn tos-page [] (index-tpl {:container (tos) :nomenu ""}))
+(defn notfound-page "Generate the 404 page."
+  [] (index-tpl {:container (notfound) :nomenu ""}))
+
+(defn about-page "Generate the about page."
+  [] (index-tpl {:container (about) :logo-link "/" :nomenu ""}))
+
+(defn tos-page "Generate the tos page."
+  [] (index-tpl {:container (tos) :nomenu ""}))
 
 ;;; * Local variables
 

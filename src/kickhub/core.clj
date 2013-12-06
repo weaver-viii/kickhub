@@ -13,9 +13,21 @@
             [ring.util.response :as resp]
             [ring.util.codec :as codec]))
 
-;;; * Friend
+;;; * Friend interactive form authentication
 
-(defn- logout [req]
+;; Variables and functions in this section are used to let the user
+;; authenticate through a traditional interactive form.  Password are
+;; encrypted using scrypt (https://en.wikipedia.org/wiki/Scrypt)
+;; before they are stored in the redis database.
+
+(def ^{:doc "Default roles for Friend authenticated users."
+       :private true}
+  friend-config-auth
+  {:roles #{:kickhub.core/users}})
+
+(defn- logout
+  "Log out authenticated users."
+  [req]
   (friend/logout* (resp/redirect (str (:context req) "/"))))
 
 (defn- load-user
@@ -25,16 +37,17 @@
         password (get-uid-field uid "p")]
     {:username username :password password :roles #{::users}}))
 
-;; Variant of bcrypt-credential-fn using scrypt
 (defn- scrypt-credential-fn
+  "Variant of `bcrypt-credential-fn` using scrypt."
   [load-credentials-fn {:keys [username password]}]
   (when-let [creds (load-credentials-fn username)]
     (let [password-key (or (-> creds meta ::password-key) :password)]
       (when (sc/verify password (get creds password-key))
         (dissoc creds password-key)))))
 
-(defn- wrap-friend [handler]
-  "Wrap friend authentication around handler."
+(defn- wrap-friend
+  "Wrap friend interactive form authentication around `handler`."
+  [handler]
   (friend/authenticate
    handler
    {:allow-anon? true
@@ -42,18 +55,28 @@
                  :allow-anon? true
                  :login-uri "/login"
                  ;; :redirect-on-auth? "/" ;; This is the default
-                 :credential-fn
-                 (partial scrypt-credential-fn load-user))]}))
+                 :credential-fn (partial scrypt-credential-fn load-user)
+                 :config-auth friend-config-auth)]}))
 
-;;; ** Github login
+;;; * Friend Github authentication
 
-(def gh-client-config
+;; Variables and functions in this section are used for GitHub
+;; authentication.  Three environment variables are requested:
+;; - github_client_id
+;; - github_client_secret
+;; - github_client_domain
+
+(def ^{:doc "Get the GitHub app configuration from environment variables."
+       :private true}
+  gh-client-config
   {:client-id (System/getenv "github_client_id")
    :client-secret (System/getenv "github_client_secret")
    :callback {:domain (System/getenv "github_client_domain")
               :path "/github.callback"}})
 
-(def friend-uri-config
+(def ^{:doc "Set up the GitHub authentication URI for Friend."
+       :private true}
+  friend-gh-uri-config
   {:authentication-uri
    {:url "https://github.com/login/oauth/authorize"
     :query {:client_id (:client-id gh-client-config)
@@ -70,11 +93,8 @@
             (oauth2-util/format-config-uri gh-client-config)
             :code ""}}})
 
-(def friend-config-auth {:roles #{:kickhub.core/users}})
-
-;; OAuth2 config
-(defn access-token-parsefn
-  "Parse response to get an access-token."
+(defn- access-token-parsefn
+  "Parse the response to get an access-token."
   [response]
   (-> response
       :body
@@ -82,8 +102,9 @@
       clojure.walk/keywordize-keys
       :access_token))
 
-(defn wrap-friend-github [handler]
-  "Wrap friend authentication around handler."
+(defn- wrap-friend-github
+  "Wrap friend authentication around `handler`."
+  [handler]
   (friend/authenticate
    handler
    {:allow-anon? true
@@ -91,17 +112,21 @@
     :workflows
     [(oauth2/workflow
       {:client-config gh-client-config
-       :uri-config friend-uri-config
+       :uri-config friend-gh-uri-config
        :login-uri "/github"
        :access-token-parsefn access-token-parsefn
        :config-auth friend-config-auth})]}))
 
 ;;; * Routes
 
-(defroutes app-routes
+;; This section contains the main routes definition along with the
+;; main handler, as called in the `immutant.init` namespace.
+
+(defroutes ^{:doc "Main application routes."
+             :private true}
+  app-routes
   ;; (GET "/" {params :params} (index-tba-page params))
   ;; (POST "/" {params :params} (email-to-mailing params))
-  
   (GET "/" req (index-page req))
   (GET "/login" req (login-page req))
   (GET "/activate/:authid" [authid]
@@ -134,15 +159,12 @@
   (route/resources "/")
   (route/not-found (notfound-page)))
 
-(def ring-handler
+(def ^{:doc "Main ring handler."}
+  ring-handler
   (middleware/app-handler
    [(wrap-friend-github (wrap-friend app-routes))]))
 
-;;; * Old github auth code
-
-;; (defn- authenticated? [req]
-;;   (get-in req [:session :cemerick.friend/identity]))
-
+;;; * Local variables
 
 ;; Local Variables:
 ;; eval: (orgstruct-mode 1)

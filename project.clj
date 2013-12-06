@@ -4,6 +4,7 @@
   :license {:name "GNU Affero General Public License version 3"
             :url "http://www.gnu.org/licenses/agpl.txt"
             :repo "https://github.com/bzg/kickhub"}
+  :codox {:sources ["src/kickhub"]}
   :immutant {:context-path "/" :nrepl-port 4005}
   :dependencies
   [[org.clojure/clojure "1.5.1"]

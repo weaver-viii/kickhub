@@ -7,11 +7,15 @@
    [ring.util.response :as resp]
    [taoensso.carmine :as car]))
 
-(def server1-conn
+;;; * Carmine connection and macro
+
+(def server-connection
+  ^{:doc "Redis serveur connection info" :private true}
   {:pool {} :spec {:uri "redis://localhost:6379/"}})
 
-(defmacro wcar* [& body]
-  `(car/wcar server1-conn ~@body))
+(defmacro wcar* "Macro to process body within a server connection."
+  [& body]
+  `(car/wcar server-connection ~@body))
 
 ;;; * General
 
@@ -52,12 +56,16 @@
   `(keywordize-keys
     (apply array-map ~@body)))
 
-(defn get-uid-projects [uid]
+(defn get-uid-projects
+  "Get the list of projects for user `uid`."
+  [uid]
   (map #(keywordize-array-mapize
          (wcar* (car/hgetall (str "pid:" %))))
        (wcar* (car/smembers (str "uid:" uid ":apid")))))
 
-(defn get-uid-transactions [uid]
+(defn get-uid-transactions
+  "Get the list of transaction for user `uid`."
+  [uid]
   (map #(keywordize-array-mapize
          (wcar* (car/hgetall (str "tid:" %))))
        (wcar* (car/smembers (str "uid:" uid ":atid")))))
@@ -65,9 +73,13 @@
 ;; (get-uid-transactions "1")
 ;; (get-uid-projects (get-username-uid "bzg"))
 
-;;; * Email
+;;; * Email processing
 
-(defn send-email [email subject body]
+;; FIXME: This uses bzg@bzg.fr as the value of the From: header
+;; We may store the From: header's value in a variable.
+(defn- send-email
+  "Send an email to the `email` address with `subject` and `body`."
+  [email subject body]
   (postal/send-message
    ^{:host "localhost"
      :port 25}
@@ -76,7 +88,10 @@
     :subject subject
     :body body}))
 
-(defn send-email-activate-account [email authid]
+;; FIXME: Store email messages into the databas
+(defn- send-email-activate-account
+  "Send an mail to `email` address to request account activation."
+  [email authid]
   (let [subject "Welcome to Kickhub -- please activate your account"
         body (format "Welcome to Kickhub!
 
@@ -87,12 +102,16 @@ http://localhost:8080/activate/%s
  Bastien" authid)]
     (send-email email subject body)))
     
-(defn send-email-subscribe-mailing [subscriber-email]
+(defn send-email-subscribe-mailing
+  "Send an mail to `subscriber-email` to notify bzg@bzg.fr of new subscribers."
+  [subscriber-email]
   (let [subject "New subscriber for Kickhub"]
     (send-email "bzg@bzg.fr" subject subscriber-email)))
 
 ;; FIXME: use repo?
-(defn send-email-new-project [name repo uid]
+(defn- send-email-new-project
+  "Send an email notification to `name` for a new project."
+  [name repo uid]
   (let [subject "Thanks for your new project!"
         project_url (format "http://localhost:8080/project/%s" name)]
     (send-email (get-uid-field uid "e")
@@ -100,7 +119,9 @@ http://localhost:8080/activate/%s
                 project_url)))
 
 ;; FIXME use tid?
-(defn send-email-new-transaction [amount pid uid fuid tid authid]
+(defn- send-email-new-transaction
+  "Send an email from uid email to fuid email to notify new transaction."
+  [amount pid uid fuid tid authid]
   (let [from_user (get-uid-field uid "u")
         subject (format "You received some support from %s" from_user)
         from_email (get-uid-field uid "e")
@@ -114,14 +135,18 @@ http://localhost:8080/activate/%s
                      user_url
                      confirm_url))))
 
-(defn email-to-mailing [{:keys [email]}]
+(defn email-to-mailing
+  "Add email to the `mailing` key in the redis db."
+  [{:keys [email]}]
   (do (wcar* (car/sadd "mailing" email))
       (send-email-subscribe-mailing email)
       (resp/redirect (str "/?m=" email))))
 
 ;;; * Create users
 
-(defn create-user [username email password]
+(defn create-user
+  "Create a user in the db from her username email and password."
+  [username email password]
   (let [guid (wcar* (car/incr "global:uid"))
         authid (digest/md5 (str (System/currentTimeMillis) username))
         picurl (str "http://www.gravatar.com/avatar/" (digest/md5 email))]
@@ -141,40 +166,46 @@ http://localhost:8080/activate/%s
         (resp/redirect "/"))))
 
 (defn register-user
-  "Register a new user"
+  "Register a new user in the db."
   [{:keys [username email password]}]
   (do (create-user username email password)
       (resp/redirect "/")))
 
-(defn activate-user [authid]
+(defn activate-user
+  "Activate a new user in the db."
+  [authid]
   (let [guid (wcar* (car/get (str "auth:" authid)))]
     (wcar* (car/hset (str "uid:" guid) "active" 1))))
 
-(defn confirm-transaction [authid]
+(defn confirm-transaction
+  "Confirm transaction `authid` in the db."
+  [authid]
   (let [tid (wcar* (car/get (str "auth:" authid)))]
     (wcar* (car/hset (str "tid:" tid) "confirmed" "1"))))
 
-(defn- project-by-uid-exists? [name uid]
-  (uid-admin-of-pid? uid (get-pname-pid name)))
+(defn- project-by-uid-exists?
+  "Does project `pname` belongs to user `uid`?"
+  [pname uid]
+  (uid-admin-of-pid? uid (get-pname-pid pname)))
 
 (defn create-project
   "Create a new project."
-  [name repo uid]
-  (when-not (project-by-uid-exists? name uid)
+  [pname repo uid]
+  (when-not (project-by-uid-exists? pname uid)
     (let [pid (wcar* (car/incr "global:pid"))]
       ;; Create the project in the db
       (wcar* (car/hmset
               (str "pid:" pid)
-              "name" name
+              "name" pname
               "repo" repo
               "created" (java.util.Date.)
               "by" uid)
              (car/rpush "projects" pid)
              (car/mset (str "pid:" pid ":auid") uid
-                       (str "project:" name ":pid") pid)
+                       (str "project:" pname ":pid") pid)
              (car/sadd (str "uid:" uid ":apid") pid))
       ;; Send an email to the author of the project
-      (send-email-new-project name repo uid))))
+      (send-email-new-project pname repo uid))))
 
 (defn create-transaction
   "Create a new transaction."
@@ -214,7 +245,7 @@ http://localhost:8080/activate/%s
 ;;            (wcar* (car/hgetall (str id %))))
 ;;          plist)))
 
-;;; 
+;;; * Local variables
 
 ;; Local Variables:
 ;; eval: (orgstruct-mode 1)
