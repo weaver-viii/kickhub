@@ -26,6 +26,10 @@
 | Done   | tid:1:auth       | string | 3b7b0677...                 | get the auth key for a transaction           |
 | Done   | auth:3b7b0677... | string | 2                           | get the transaction for a auth key           |
 |--------+------------------+--------+-----------------------------+----------------------------------------------|
+| Done   | global:nid       | string | 1                           | news                                         |
+| Done   | news             | list   | {1, 2}                      | list of news                                 |
+| Done   | nid:1            | hash   | {content: date: amount:}    |                                              |
+|--------+------------------+--------+-----------------------------+----------------------------------------------|
 |        | uid:1:followers  | set    | {2}                         |                                              |
 |        | uid:2:following  | set    | {1}                         |                                              |
 
