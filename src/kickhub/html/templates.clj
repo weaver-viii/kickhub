@@ -135,7 +135,7 @@
   [req & {:keys [msg]}]
   (let [id (friend/identity req)]
     (index-tpl {:container
-                (news (map news-to-sentence (get-news)))
+                (news (map news-to-sentence (reverse (get-news))))
                 :msg (or msg (if id
                                "You are now logged in"
                                "Please login or register"))})))
@@ -214,7 +214,7 @@
 
 (defn tos-page "Generate the tos page."
   [] (index-tpl {:container (tos)}))
- 
+
 ;;; * Local variables
 
 ;; Local Variables:
