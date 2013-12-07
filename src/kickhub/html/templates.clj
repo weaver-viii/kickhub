@@ -10,10 +10,12 @@
 ;;; * Utility functions
 
 (defmacro maybe-substitute
+  "Maybe substitute."
   ([expr] `(if-let [x# ~expr] (html/substitute x#) identity))
   ([expr & exprs] `(maybe-substitute (or ~expr ~@exprs))))
 
 (defmacro maybe-content
+  "Maybe content."
   ([expr] `(if-let [x# ~expr] (html/content x#) identity))
   ([expr & exprs] `(maybe-content (or ~expr ~@exprs))))
 
@@ -52,27 +54,36 @@
 
 ;;; * Projects and donations snippets
 
-(def ^{:doc "Enlive project selector" :dynamic true}
+(def ^{:doc "Project selector." :dynamic true}
   *project-sel* [[:.project (html/nth-of-type 1)] :> html/first-child])
 
-(html/defsnippet my-project "kickhub/html/lists.html" *project-sel*
+(html/defsnippet 
+  ^{:doc "Project snippet." :dynamic true}
+  my-project "kickhub/html/lists.html" *project-sel*
   [{:keys [name]}]
   [:a] (html/do->
         (html/content name)
         (html/set-attr :href (str "http://localhost:8080/project/" name))))
 
-(html/defsnippet my-projects "kickhub/html/lists.html" [:#my_projects]
+(html/defsnippet
+  ^{:doc "List of Projects snippet." :dynamic true}
+  my-projects "kickhub/html/lists.html" [:#my_projects]
   [projects]
   [:#content] (html/content (map #(my-project %) projects)))
 
-(def ^{:doc "Enlive donation selector" :dynamic true}
-  *donation-sel* [[:.donation (html/nth-of-type 1)] :> html/first-child])
+(def ^{:doc "Donation selector" :dynamic true}
+  *donation-sel*
+  [[:.donation (html/nth-of-type 1)] :> html/first-child])
 
-(html/defsnippet my-donation "kickhub/html/lists.html" *donation-sel*
+(html/defsnippet
+  ^{:doc "Donation snippet." :dynamic true}
+  my-donation "kickhub/html/lists.html" *donation-sel*
   [{:keys [amount]}]
   [:span] (html/content amount))
 
-(html/defsnippet my-donations "kickhub/html/lists.html" [:#my_donations]
+(html/defsnippet
+  ^{:doc "List of donations snippet." :dynamic true}
+  my-donations "kickhub/html/lists.html" [:#my_donations]
   [donations]
   [:#content1] (html/content (map #(my-donation %) donations)))
 
