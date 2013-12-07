@@ -13,7 +13,7 @@
   ^{:doc "Redis serveur connection info" :private true}
   {:pool {} :spec {:uri "redis://localhost:6379/"}})
 
-(defmacro wcar* "Macro to process body within a server connection."
+(defmacro wcar* "Macro to process body within a redis server connection."
   [& body]
   `(car/wcar server-connection ~@body))
 
@@ -144,6 +144,21 @@ http://localhost:8080/activate/%s
 
 ;;; * Create users
 
+(defn create-news
+  "Create a news.
+News can be of type:
+- new user         (\"u\")
+- new project      (\"p\")
+- new transaction  (\"t\")
+- new confirmation (\"tc\")"
+  [{:keys [type fuid uid tid pid]}]
+  (let [gnid (wcar* (car/incr "global:nid"))
+        ndate (System/currentTimeMillis)]
+    (wcar*
+     (car/hmset
+      (str "nid:" gnid) "t" type "uid" uid "tid" tid "pid" pid
+      "date" ndate))))
+
 (defn create-user
   "Create a user in the db from her username email and password."
   [username email password]
@@ -162,6 +177,8 @@ http://localhost:8080/activate/%s
                    (str "uid:" guid ":auth") authid
                    (str "auth:" authid) guid)
          (car/rpush "users" guid))
+        ;; Create a news about it
+        (create-news {:type "u" :uid guid})
         (send-email-activate-account email authid)
         (resp/redirect "/"))))
 
@@ -181,7 +198,9 @@ http://localhost:8080/activate/%s
   "Confirm transaction `authid` in the db."
   [authid]
   (let [tid (wcar* (car/get (str "auth:" authid)))]
-    (wcar* (car/hset (str "tid:" tid) "confirmed" "1"))))
+    (wcar* (car/hset (str "tid:" tid) "confirmed" "1"))
+    ;; Create a news about it
+    (create-news {:type "tc" :tid tid})))
 
 (defn- project-by-uid-exists?
   "Does project `pname` belongs to user `uid`?"
@@ -204,6 +223,8 @@ http://localhost:8080/activate/%s
              (car/mset (str "pid:" pid ":auid") uid
                        (str "project:" pname ":pid") pid)
              (car/sadd (str "uid:" uid ":apid") pid))
+      ;; Create a news about it
+      (create-news {:type "p" :pid pid})
       ;; Send an email to the author of the project
       (send-email-new-project pname repo uid))))
 
@@ -226,6 +247,8 @@ http://localhost:8080/activate/%s
                      (str "tid:" tid ":auth") authid
                      (str "auth:" authid) tid)
            (car/sadd (str "uid:" fuid ":atid") tid))
+    ;; Create a news about it
+    (create-news {:type "t" :tid tid})
     ;; Send emails to the recipient of the transaction
     (send-email-new-transaction amount pid uid fuid tid authid)))
 
