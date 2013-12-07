@@ -174,14 +174,14 @@ News can be of type:
          (wcar* (car/hgetall (str "nid:" "1"))))]
     (condp = (:t nparams)
       "u"  (str "Welcome to " (get-uid-field (:fuid nparams) "u") "!")
-      "p"  (str "New project "
-                (get-pid-field (:pid nparams) "name") "by"
-                (get-pid-field (:pid nparams) "by"))
-      "t"  (format "New transaction from %s to %s for %s"
+      "p"  (format "%s published a new project called %s"
+                   (get-pid-field (:pid nparams) "by")
+                   (get-pid-field (:pid nparams) "name"))
+      "t"  (format "%s promised to make a donation to %s for %s"
                    (get-username-uid (get-tid-field (:tid nparams) "by"))
                    (get-username-uid (get-tid-field (:tid nparams) "to"))
                    (get-pid-field (get-tid-field (:tid nparams) "for") "name"))
-      "tc" (format "%s confirmed he the transaction from %s for %s"
+      "tc" (format "%s received a donation from %s for %s"
                    (get-username-uid (get-tid-field (:tid nparams) "to"))
                    (get-username-uid (get-tid-field (:tid nparams) "by"))
                    (get-pid-field (get-tid-field (:tid nparams) "for") "name")))))
