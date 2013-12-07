@@ -54,7 +54,7 @@ input {
 }
 
 .news {
-    display:inline;
+    display:block;
 }
 
 #footer {
