@@ -133,13 +133,14 @@
        (friend/authorize
         #{::users}
         (do (activate-user authid)
-            (index-page nil {:msg "User activated, please log in"
-                             :nomenu ""}))))
+            (index-page nil
+                        :msg "User activated, please log in"
+                        :nomenu ""))))
   (GET "/confirm/:authid" [authid]
        (friend/authorize
         #{::users}
         (do (confirm-transaction authid)
-            (index-page nil {:msg "Transaction confirmed, thanks"}))))
+            (index-page nil :msg "Transaction confirmed, thanks"))))
 
   (GET "/user/:username" req (user-page req))
   (GET "/project/:pname" req (project-page req))
