@@ -6,28 +6,40 @@
     <title>KickHub: boost free software/content donations</title>
     <link rel="stylesheet" href="/css/kickhub.css" type="text/css" />
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="author" content="Bastien Guerry" />
+    <!-- <link href="/css/bootstrap-theme.min.css" rel="stylesheet" /> -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet" />
   </head>
   <body>
-
+    
     <div id="logo">
       <a href="/about" title="About KickHub">
 	<img src="/pic/logo_kickhub.png"/>
       </a>
     </div>
-    
-    <div id="menu">
-      <ul>
-	<li><a href="/login">Login</a></li>
-	<li><a href="/register">Register</a></li>
-      </ul>
-    </div>
 
+    <div id="menu">
+
+      <div class="btn-group pull-right">
+    	<button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+    	  You <span class="caret"></span>
+    	</button>
+    	<ul class="dropdown-menu" role="menu">
+    	  <!-- <li role="presentation" class="dropdown-header">Dropdown header</li> -->
+    	  <li><a href="/login" role="menuitem" tabindex="-1">Login</a></li>
+    	  <li><a href="/register" role="menuitem" tabindex="-1">Register</a></li>
+    	  <li><a class="disabled" href="/logout" role="menuitem" tabindex="-1">Logout</a></li>
+    	</ul>
+      </div>
+    </div>
+    
     <div id="msg">
       <p></p>
     </div>
     
     <div id="container">
+      
       <div id="info">Some information</div>
       <ul id="notifications">
 	<li><a href="#">Notification</a></li>
@@ -44,5 +56,8 @@
       </p>
     </div>
 
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    
   </body>
 </html>
