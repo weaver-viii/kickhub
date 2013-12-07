@@ -49,6 +49,16 @@
   [pid field]
   (wcar* (car/hget (str "pid:" pid) field)))
 
+(defn get-tid-all
+  "Given a tid, return all info about it."
+  [uid]
+  (wcar* (car/hgetall (str "tid:" uid))))
+
+(defn get-tid-field
+  "Given a tid and a field (as a string), return the info."
+  [uid field]
+  (wcar* (car/hget (str "tid:" uid) field)))
+
 (defn- uid-admin-of-pid? [uid pid]
   (= (wcar* (car/get (str "pid:" pid ":auid"))) uid))
 
@@ -141,6 +151,44 @@ http://localhost:8080/activate/%s
   (do (wcar* (car/sadd "mailing" email))
       (send-email-subscribe-mailing email)
       (resp/redirect (str "/?m=" email))))
+
+;;; * Handle news
+
+(defn- create-news
+  "Create a news.
+News can be of type:
+- new user         (\"u\")
+- new project      (\"p\")
+- new transaction  (\"t\")
+- new confirmation (\"tc\")"
+  [{:keys [type fuid uid tid pid]}]
+  (let [gnid (wcar* (car/incr "global:nid"))
+        ndate (System/currentTimeMillis)]
+    (wcar*
+     (car/hmset
+      (str "nid:" gnid) "t" type "uid" uid "tid" tid "pid" pid
+      "date" ndate))))
+
+(defn- news-to-sentence
+  "Given a news id `nid`, make the news human-readable."
+  [nid]
+  (let [nparams
+        (keywordize-array-mapize
+         (wcar* (car/hgetall (str "nid:" "1"))))]
+    (condp = (:t nparams)
+      "u"  (str "Welcome to " (get-uid-field (:fuid nparams) "u") "!")
+      "p"  (str "New project "
+                (get-pid-field (:pid nparams) "name") "by"
+                (get-pid-field (:pid nparams) "by"))
+      "t"  (format "New transaction from %s to %s for %s"
+                   (get-username-uid (get-tid-field (:tid nparams) "by"))
+                   (get-username-uid (get-tid-field (:tid nparams) "to"))
+                   (get-pid-field (get-tid-field (:tid nparams) "for") "name"))
+      "tc" (format "%s confirmed he the transaction from %s for %s"
+                   (get-username-uid (get-tid-field (:tid nparams) "to"))
+                   (get-username-uid (get-tid-field (:tid nparams) "by"))
+                   (get-pid-field (get-tid-field (:tid nparams) "for") "name")))))
+
 ;;; * Handle transactions
 
 (defn confirm-transaction
@@ -238,23 +286,6 @@ http://localhost:8080/activate/%s
       (create-news {:type "p" :pid pid})
       ;; Send an email to the author of the project
       (send-email-new-project pname repo uid))))
-
-;;; * Handle news
-
-(defn create-news
-  "Create a news.
-News can be of type:
-- new user         (\"u\")
-- new project      (\"p\")
-- new transaction  (\"t\")
-- new confirmation (\"tc\")"
-  [{:keys [type fuid uid tid pid]}]
-  (let [gnid (wcar* (car/incr "global:nid"))
-        ndate (System/currentTimeMillis)]
-    (wcar*
-     (car/hmset
-      (str "nid:" gnid) "t" type "uid" uid "tid" tid "pid" pid
-      "date" ndate))))
 
 ;;; * Old code
 
