@@ -19,6 +19,17 @@
 
 ;;; * General
 
+(defn get-last-stream
+  "Get the n last items from stream of kind for id.
+n is a positive integer.
+kind is a string (e.g. \"users\", \"projects\" or \"news\").
+id is a string (e.g. \"uid\", \"pid\" or \"tid\")."
+  [[kind id] n]
+  (let [plist (reverse (take n (wcar* (car/lrange kind 0 -1))))]
+    (map #(keywordize-array-mapize
+           (wcar* (car/hgetall (str id ":" %))))
+         plist)))
+
 (defn get-username-uid
   "Given a username, return the corresponding uid."
   [username]
@@ -162,24 +173,29 @@ News can be of type:
   (let [gnid (wcar* (car/incr "global:nid"))
         ndate (System/currentTimeMillis)]
     (wcar*
+     (car/rpush "news" gnid)
      (car/hmset
       (str "nid:" gnid) "t" type "uid" uid "tid" tid "pid" pid
       "date" ndate))))
 
-(defn- news-to-sentence
+(defn get-news "Get all news ids"
+  []
+  (wcar* (car/lrange "news" 0 -1)))
+
+(defn news-to-sentence
   "Given a news id `nid`, make the news human-readable."
   [nid]
   (let [nparams
         (keywordize-array-mapize
-         (wcar* (car/hgetall (str "nid:" "1"))))]
+         (wcar* (car/hgetall (str "nid:" nid))))]
     (condp = (:t nparams)
-      "u"  (str "Welcome to " (get-uid-field (:fuid nparams) "u") "!")
+      "u"  (str "Welcome to " (get-uid-field (:uid nparams) "u") "!")
       "p"  (format "%s published a new project called %s"
-                   (get-pid-field (:pid nparams) "by")
+                   (get-uid-field (get-pid-field (:pid nparams) "by") "u")
                    (get-pid-field (:pid nparams) "name"))
       "t"  (format "%s promised to make a donation to %s for %s"
-                   (get-username-uid (get-tid-field (:tid nparams) "by"))
-                   (get-username-uid (get-tid-field (:tid nparams) "to"))
+                   (get-uid-field (get-tid-field (:tid nparams) "by") "u")
+                   (get-uid-field (get-tid-field (:tid nparams) "to") "u")
                    (get-pid-field (get-tid-field (:tid nparams) "for") "name"))
       "tc" (format "%s received a donation from %s for %s"
                    (get-username-uid (get-tid-field (:tid nparams) "to"))
@@ -210,7 +226,7 @@ News can be of type:
             "for" pid
             "amount" amount
             "confirmed" "0")
-           (car/rpush "trans" tid)
+           (car/rpush "transactions" tid)
            (car/mset (str "tid:" tid ":auid") fuid
                      (str "tid:" tid ":auth") authid
                      (str "auth:" authid) tid)

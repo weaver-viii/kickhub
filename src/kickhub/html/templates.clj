@@ -36,7 +36,7 @@
   ;; Set the content of the page
   [:#container] (maybe-content container))
 
-;;; * Snippets
+;;; * Generic snippets
 
 (html/defsnippet ^{:doc "Snippet for the TBA page."}
   tba "kickhub/html/messages.html" [:#tba] [])
@@ -47,8 +47,22 @@
 (html/defsnippet ^{:doc "Snippet for the /tos page."}
   tos "kickhub/html/messages.html" [:#tos] [])
 
+;;; * Snippet for news
+
+;; This snippet takes a string as arg and inserts it in the list item
+;; within the .news html selector
+(html/defsnippet ^{:doc "Snippet for a news."}
+  anews "kickhub/html/news.html" [:.news]
+  [an]
+  [:li] (html/content an))
+
+;; This snippet takes a list of news (strings) as arg and map over it
+;; to insert news as list item within the #allnews html div selector
 (html/defsnippet ^{:doc "Snippet for the news."}
-  news "kickhub/html/news.html" [:#allnews] [])
+  news "kickhub/html/news.html" [:#allnews]
+  [ns]
+  [:.newscontent] (html/content (map #(anews %) ns)))
+
 (html/defsnippet ^{:doc "Snippet for the profile."}
   profile "kickhub/html/profile.html" [:#profile] [])
 
@@ -121,7 +135,8 @@
   "Generate the index page."
   [req & {:keys [msg]}]
   (let [id (friend/identity req)]
-    (index-tpl {:container (news)
+    (index-tpl {:container
+                (news (map news-to-sentence (get-news)))
                 :nomenu (when id "")
                 :msg (or msg (if id
                                "You are now logged in"
