@@ -141,23 +141,40 @@ http://localhost:8080/activate/%s
   (do (wcar* (car/sadd "mailing" email))
       (send-email-subscribe-mailing email)
       (resp/redirect (str "/?m=" email))))
+;;; * Handle transactions
 
-;;; * Create users
+(defn confirm-transaction
+  "Confirm transaction `authid` in the db."
+  [authid]
+  (let [tid (wcar* (car/get (str "auth:" authid)))]
+    (wcar* (car/hset (str "tid:" tid) "confirmed" "1"))
+    ;; Create a news about it
+    (create-news {:type "tc" :tid tid})))
 
-(defn create-news
-  "Create a news.
-News can be of type:
-- new user         (\"u\")
-- new project      (\"p\")
-- new transaction  (\"t\")
-- new confirmation (\"tc\")"
-  [{:keys [type fuid uid tid pid]}]
-  (let [gnid (wcar* (car/incr "global:nid"))
-        ndate (System/currentTimeMillis)]
-    (wcar*
-     (car/hmset
-      (str "nid:" gnid) "t" type "uid" uid "tid" tid "pid" pid
-      "date" ndate))))
+(defn create-transaction
+  "Create a new transaction."
+  [amount pid uid fuid]
+  (let [tid (wcar* (car/incr "global:tid"))
+        authid (digest/md5 (str (System/currentTimeMillis) tid))]
+    ;; Create the transaction in the db
+    (wcar* (car/hmset
+            (str "tid:" tid)
+            "created" (java.util.Date.)
+            "by" fuid
+            "to" uid
+            "for" pid
+            "amount" amount
+            "confirmed" "0")
+           (car/rpush "trans" tid)
+           (car/mset (str "tid:" tid ":auid") fuid
+                     (str "tid:" tid ":auth") authid
+                     (str "auth:" authid) tid)
+           (car/sadd (str "uid:" fuid ":atid") tid))
+    ;; Create a news about it
+    (create-news {:type "t" :tid tid})
+    ;; Send emails to the recipient of the transaction
+    (send-email-new-transaction amount pid uid fuid tid authid)))
+;;; * Handle users
 
 (defn create-user
   "Create a user in the db from her username email and password."
@@ -194,13 +211,7 @@ News can be of type:
   (let [guid (wcar* (car/get (str "auth:" authid)))]
     (wcar* (car/hset (str "uid:" guid) "active" 1))))
 
-(defn confirm-transaction
-  "Confirm transaction `authid` in the db."
-  [authid]
-  (let [tid (wcar* (car/get (str "auth:" authid)))]
-    (wcar* (car/hset (str "tid:" tid) "confirmed" "1"))
-    ;; Create a news about it
-    (create-news {:type "tc" :tid tid})))
+;;; * Handle projects
 
 (defn- project-by-uid-exists?
   "Does project `pname` belongs to user `uid`?"
@@ -228,29 +239,24 @@ News can be of type:
       ;; Send an email to the author of the project
       (send-email-new-project pname repo uid))))
 
-(defn create-transaction
-  "Create a new transaction."
-  [amount pid uid fuid]
-  (let [tid (wcar* (car/incr "global:tid"))
-        authid (digest/md5 (str (System/currentTimeMillis) tid))]
-    ;; Create the transaction in the db
-    (wcar* (car/hmset
-            (str "tid:" tid)
-            "created" (java.util.Date.)
-            "by" fuid
-            "to" uid
-            "for" pid
-            "amount" amount
-            "confirmed" "0")
-           (car/rpush "trans" tid)
-           (car/mset (str "tid:" tid ":auid") fuid
-                     (str "tid:" tid ":auth") authid
-                     (str "auth:" authid) tid)
-           (car/sadd (str "uid:" fuid ":atid") tid))
-    ;; Create a news about it
-    (create-news {:type "t" :tid tid})
-    ;; Send emails to the recipient of the transaction
-    (send-email-new-transaction amount pid uid fuid tid authid)))
+;;; * Handle news
+
+(defn create-news
+  "Create a news.
+News can be of type:
+- new user         (\"u\")
+- new project      (\"p\")
+- new transaction  (\"t\")
+- new confirmation (\"tc\")"
+  [{:keys [type fuid uid tid pid]}]
+  (let [gnid (wcar* (car/incr "global:nid"))
+        ndate (System/currentTimeMillis)]
+    (wcar*
+     (car/hmset
+      (str "nid:" gnid) "t" type "uid" uid "tid" tid "pid" pid
+      "date" ndate))))
+
+;;; * Old code
 
 ;; (defn filter-out-active-repos
 ;;   "Filter out repos that user uid has already activated"
