@@ -2,17 +2,23 @@
 
 #+HTML: <a href="http://travis-ci.org/bzg/kickhub"><img src="https://api.travis-ci.org/bzg/kickhub.png"/></a>
 
-This repository contains the code behind http://kickhub.com
+This repository contains the code behind http://kickhub.com.
 
 The code is published under the [[http://www.gnu.org/licenses/agpl.txt][GNU Affero Public License v3]].
-You can freely read, modify and redistribute modified versions
-if you redistribute them under the GNU APLv3.
+
+You can freely read, modify and redistribute modified versions if you
+redistribute them under the GNU APLv3.
 
 * What is kickhub.com?
 
-http://kickhub.com aims at making it easier for users to donate to
-free softwares developers, and for free software developers to make
-it easier to reach the right potential donators.
+http://kickhub.com aims at making it easier for free software users to
+donate to developers, and for free software developers to make it
+easier to reach the right potential donators.  It handle both direct
+and unconditional donations, and delayed/conditional donations, so
+this can be used as a crowdfunding system -- except that you pick the
+payment system you usually use.
+
+* History
 
 See http://bzg.fr/clojurecup-2013.html and especially [[http://bzg.fr/clojurecup-2013-the-problem.html][the problem]] I
 try to define/explore/tackle.
