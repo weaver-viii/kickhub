@@ -19,6 +19,12 @@
 
 ;;; * General
 
+(defmacro keywordize-array-mapize
+  "Convert an array to a map, keywordizing odd items."
+  [& body]
+  `(keywordize-keys
+    (apply array-map ~@body)))
+
 (defn get-last-stream
   "Get the n last items from stream of kind for id.
 n is a positive integer.
@@ -72,10 +78,6 @@ id is a string (e.g. \"uid\", \"pid\" or \"tid\")."
 
 (defn- uid-admin-of-pid? [uid pid]
   (= (wcar* (car/get (str "pid:" pid ":auid"))) uid))
-
-(defmacro keywordize-array-mapize [& body]
-  `(keywordize-keys
-    (apply array-map ~@body)))
 
 (defn get-uid-projects
   "Get the list of projects for user `uid`."
