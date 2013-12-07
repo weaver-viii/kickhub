@@ -1,0 +1,29 @@
+* About
+
+KickHub is about boosting donations to free softwares.
+
+It helps *users* discover existing or future free softwares they want
+to donate to, and it helps *developers* find their donators.
+
+Each project is listed on a public page, where everyone can see the
+amount of donations received by the contributors.
+
+"Projects" are of two kinds:
+
+- /existing projects/, for which users can donate immediately ;
+- /future projects/, for which users can either donate immediately or
+  later.
+
+Each time a user commit to donate to a project, the user and the
+developer receive an email notification.  When the transaction is
+done, the developer confirms it.
+
+* TOS
+
+We don't share your email address with anyone.
+
+We don't send email advertisement.
+
+Accounts that have been inactive for more than a year are deleted.
+
+
