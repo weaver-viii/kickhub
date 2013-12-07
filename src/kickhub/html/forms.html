@@ -13,21 +13,14 @@
     <input class="form-control" type="text" name="username" placeholder="Username" />
     <input class="form-control" type="text" name="email" placeholder="Email" />
     <input class="form-control" type="password" name="password" placeholder="Password" />
-    <input class="form-control" type="submit" value="Register" />
-  </div>
-</form>
-
-<form id="submit-project" action="/project" method="post">
-  <div class="input-group">
-    <input class="form-control" type="text" name="name" placeholder="Project name" />
-    <input class="form-control" type="text" name="repo" placeholder="Repo" />
-    <input class="form-control" type="submit" value="Submit" />
+    <button type="submit" class="btn btn-info">Register</button>
   </div>
 </form>
 
 <form id="submit-email" method="post" action="/">
   <div class="input-group">
     <input class="form-control" type="text" name="email" placeholder="Your email" />
+    <button type="submit" class="btn btn-info">Send me updates</button>
   </div>
 </form>
 
@@ -35,7 +28,7 @@
   <div class="input-group">
     <input class="form-control" type="text" name="amount" placeholder="Donation's amount" />
     <input class="form-control" type="text" name="pid" placeholder="pid (number)" />
-    <input class="form-control" type="submit" value="Promise to donate" />
+    <button type="submit" class="btn btn-info">Promise to donate</button>
   </div>
 </form>
 
@@ -44,29 +37,14 @@
     <input class="form-control" type="text" name="name" placeholder="Name" />
     <input class="form-control" type="text" name="firstname" placeholder="First name" />
     <input class="form-control" type="text" name="picture" placeholder="Picture" />
-    <input class="form-control" type="submit" value="Register" />
+    <button type="submit" class="btn btn-info">Update profile</button>
   </div>
 </form>
 
-<form id="submit-project" action="/project" method="post">
+<form id="submit-project" action="/newproject" method="post">
   <div class="input-group">
     <input class="form-control" type="text" name="name" placeholder="Project name" />
     <input class="form-control" type="text" name="repo" placeholder="Repo" />
-    <input class="form-control" type="submit" value="Submit project" />
+    <button type="submit" class="btn btn-info">Submit project</button>
   </div>
 </form>
-
-<form id="submit-email" method="post" action="/">
-  <div class="input-group">
-    <input class="form-control" type="text" name="email" placeholder="Your email" />
-  </div>
-</form>
-
-<form id="submit-donation" action="/donation" method="post">
-  <div class="input-group">
-    <input class="form-control" type="text" name="amount" placeholder="Donation's amount" />
-    <input class="form-control" type="text" name="pid" placeholder="pid (number)" />
-    <input class="form-control" type="submit" value="Promise to donate" />
-  </div>
-</form>
-
