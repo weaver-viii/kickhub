@@ -1,11 +1,13 @@
 /target
-/docs
-/doc
 /utils
 /lib
 /classes
 /checkouts
 /patches
+/src
+/resources
+/test
+/utils
 pom.xml
 *.jar
 *.class
