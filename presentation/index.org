@@ -1,0 +1,26 @@
+#+TITLE: Kickhub
+#+DATE: <2013-12-07 sam.>
+
+* Kickhub is...
+
+#+BEGIN_SRC clojure
+(ns kickhub.core
+  (:require [cemerick.friend :as friend]
+            [cemerick.friend.workflows :as workflows]
+            [clojurewerkz.scrypt.core :as sc]
+            [compojure.core :refer [GET POST defroutes]]
+            [compojure.route :as route]
+            [friend-oauth2.workflow :as oauth2]
+            [friend-oauth2.util :as oauth2-util]
+            [kickhub.html.templates :refer :all]
+            [kickhub.model :refer :all]
+            [kickhub.github :refer :all]
+            [noir.util.middleware :as middleware]
+            [ring.util.response :as resp]
+            [ring.util.codec :as codec]))
+#+END_SRC
+
+* Kickhub is not...
+
+TBA
+

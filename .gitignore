@@ -16,5 +16,5 @@ pom.xml
 *.log
 .nrepl-port
 ChangeLog
-*.org
-
+todo.org
+index.org
