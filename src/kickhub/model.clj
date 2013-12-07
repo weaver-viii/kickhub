@@ -80,9 +80,6 @@
          (wcar* (car/hgetall (str "tid:" %))))
        (wcar* (car/smembers (str "uid:" uid ":atid")))))
 
-;; (get-uid-transactions "1")
-;; (get-uid-projects (get-username-uid "bzg"))
-
 ;;; * Email processing
 
 ;; FIXME: This uses bzg@bzg.fr as the value of the From: header
@@ -287,7 +284,7 @@ News can be of type:
       ;; Send an email to the author of the project
       (send-email-new-project pname repo uid))))
 
-;;; * Old code
+;;; * Old code and tests
 
 ;; (defn filter-out-active-repos
 ;;   "Filter out repos that user uid has already activated"
@@ -304,6 +301,9 @@ News can be of type:
 ;;     (map #(keywordize-array-mapize
 ;;            (wcar* (car/hgetall (str id %))))
 ;;          plist)))
+
+;; (get-uid-transactions "1")
+;; (get-uid-projects (get-username-uid "bzg"))
 
 ;;; * Local variables
 
