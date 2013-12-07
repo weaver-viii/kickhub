@@ -9,6 +9,7 @@
             [kickhub.html.templates :refer :all]
             [kickhub.model :refer :all]
             [kickhub.github :refer :all]
+            [kickhub.rss :refer :all]
             [noir.util.middleware :as middleware]
             [ring.util.response :as resp]
             [ring.util.codec :as codec]))
@@ -143,6 +144,7 @@
   (GET "/user/:username" req (user-page req))
   (GET "/project/:pname" req (project-page req))
 
+  (GET "/rss" [] (rss))
   (GET "/register" [] (register-page nil))
   (POST "/register" {params :params} (register-user params))
 
