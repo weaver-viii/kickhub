@@ -23,9 +23,8 @@
 
 (html/deftemplate ^{:doc "Main index template"}
   index-tpl "kickhub/html/base.html"
-  [{:keys [container logo-link msg nomenu]}]
+  [{:keys [container logo-link msg]}]
   ;; In /about, the logo points to the index page
-  [:#menu] (maybe-substitute nomenu)
   [:#msg :p] (maybe-content msg)
   [:#logo :a] (html/set-attr :href (or logo-link "/about"))
   ;; Set the menu item
@@ -137,7 +136,6 @@
   (let [id (friend/identity req)]
     (index-tpl {:container
                 (news (map news-to-sentence (get-news)))
-                :nomenu (when id "")
                 :msg (or msg (if id
                                "You are now logged in"
                                "Please login or register"))})))
@@ -194,8 +192,7 @@
         id (friend/identity req)]
     (index-tpl {:container
                 (concat (my-projects (get-uid-projects uid))
-                        (my-donations (get-uid-transactions uid)))
-                :nomenu (when id "")})))
+                        (my-donations (get-uid-transactions uid)))})))
 
 (defn project-page
   "Generate the page to display a project information."
@@ -207,18 +204,17 @@
         id (friend/identity req)]
     (index-tpl {:container (str "Project: " (get-pid-field pid "name")
                                 " by " (get-uid-field
-                                        (get-pid-field pid "by") "u"))
-                :nomenu (when id "")})))
+                                        (get-pid-field pid "by") "u"))})))
 
 (defn notfound-page "Generate the 404 page."
-  [] (index-tpl {:container (notfound) :nomenu ""}))
+  [] (index-tpl {:container (notfound)}))
 
 (defn about-page "Generate the about page."
-  [] (index-tpl {:container (about) :logo-link "/" :nomenu ""}))
+  [] (index-tpl {:container (about) :logo-link "/"}))
 
 (defn tos-page "Generate the tos page."
-  [] (index-tpl {:container (tos) :nomenu ""}))
-
+  [] (index-tpl {:container (tos)}))
+ 
 ;;; * Local variables
 
 ;; Local Variables:

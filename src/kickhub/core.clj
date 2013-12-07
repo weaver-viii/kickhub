@@ -133,9 +133,7 @@
        (friend/authorize
         #{::users}
         (do (activate-user authid)
-            (index-page nil
-                        :msg "User activated, please log in"
-                        :nomenu ""))))
+            (index-page nil :msg "User activated, please log in"))))
   (GET "/confirm/:authid" [authid]
        (friend/authorize
         #{::users}
