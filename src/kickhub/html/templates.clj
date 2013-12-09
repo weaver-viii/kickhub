@@ -23,8 +23,9 @@
 
 (html/deftemplate ^{:doc "Main index template"}
   index-tpl "kickhub/html/base.html"
-  [{:keys [container logo-link msg]}]
+  [{:keys [container logo-link msg menu]}]
   ;; In /about, the logo points to the index page
+  [:#menu] (maybe-content menu)
   [:#msg :p] (maybe-content msg)
   [:#logo :a] (html/set-attr :href (or logo-link "/about"))
   ;; Set the menu item
@@ -119,6 +120,15 @@
   submit-donation "kickhub/html/forms.html" [:#submit-donation] [])
 (html/defsnippet ^{:doc "Snippet for the submit profile form."}
   submit-profile "kickhub/html/forms.html" [:#submit-profile] [])
+(html/defsnippet ^{:doc "Snippet for the logged menu."}
+  logged-menu "kickhub/html/forms.html"
+  [:#logged-menu]
+  [username]
+  [:ul :li :a.profile]
+  (html/set-attr :href (str "http://localhost:8080/user/" username)))
+
+(html/defsnippet ^{:doc "Snippet for the unlogged menu."}
+  unlogged-menu "kickhub/html/forms.html" [:#unlogged-menu] [])
 
 ;;; * Views
 
@@ -126,6 +136,7 @@
   "Generate the index TBA page."
   [params]
   (index-tpl {:container (concat (tba) (submit-email))
+              :menu (unlogged-menu)
               :msg (if (:m params)
                      (str (:m params) " is now subscribed")
                      "")}))
@@ -136,6 +147,7 @@
   (let [id (friend/identity req)]
     (index-tpl {:container
                 (news (map news-to-sentence (reverse (get-news))))
+                :menu (if id (logged-menu (:current id)) (unlogged-menu))
                 :msg (or msg (if id
                                "You are now logged in"
                                "Please login or register"))})))
@@ -146,6 +158,7 @@
   (let [params (clojure.walk/keywordize-keys (:form-params req))
         id (friend/identity req)]
     (index-tpl {:container (if id "You are already logged in" (login))
+                :menu (unlogged-menu)
                 :msg (if (= (:login_failed params) "Y")
                        "Error when logging in..."
                        "")})))
@@ -153,34 +166,41 @@
 (defn register-page
   "Generate the register page."
   [params]
-  (index-tpl {:container (register)}))
+  (index-tpl {:container (register)
+              :menu (unlogged-menu)}))
 
 (defn submit-project-page
   "Generate the page to submit a project."
-  [req id]
-  (let [params (clojure.walk/keywordize-keys (:form-params req))
+  [req]
+  (let [route-params (clojure.walk/keywordize-keys (:route-params req))
+        id (friend/identity req)
+        params (clojure.walk/keywordize-keys (:form-params req))
         name (:name params)
         repo (:repo params)
         username (:current id)
         uid (get-username-uid username)]
-  (if params
+  (if (not (empty? params))
     (do (create-project name repo uid)
         (resp/redirect (str "/user/" username)))
-    (index-tpl {:container (submit-project)}))))
+    (index-tpl {:container (submit-project)
+                :menu (logged-menu (:current id))}))))
 
 (defn submit-donation-page
   "Generate the page to submit a donation."
-  [req id]
-  (let [params (clojure.walk/keywordize-keys (:form-params req))
+  [req]
+  (let [route-params (clojure.walk/keywordize-keys (:route-params req))
+        id (friend/identity req)
+        params (clojure.walk/keywordize-keys (:form-params req))
         amount (:amount params)
         pid (:pid params)
         username (:current id)
         fuid (get-username-uid username)
         uid (get-pid-field pid "by")]
-    (if params
+    (if (not (empty? params))
       (do (create-transaction amount pid uid fuid)
           (resp/redirect (str "/user/" username)))
-      (index-tpl {:container (submit-donation)}))))
+      (index-tpl {:container (submit-donation)
+                  :menu (logged-menu (:current id))}))))
 
 (defn user-page
   "Generate the page to display a user information."
@@ -192,7 +212,8 @@
         id (friend/identity req)]
     (index-tpl {:container
                 (concat (my-projects (get-uid-projects uid))
-                        (my-donations (get-uid-transactions uid)))})))
+                        (my-donations (get-uid-transactions uid)))
+                :menu (if id (logged-menu (:current id)) (unlogged-menu))})))
 
 (defn project-page
   "Generate the page to display a project information."
@@ -204,16 +225,35 @@
         id (friend/identity req)]
     (index-tpl {:container (str "Project: " (get-pid-field pid "name")
                                 " by " (get-uid-field
-                                        (get-pid-field pid "by") "u"))})))
+                                        (get-pid-field pid "by") "u"))
+                :menu (if id (logged-menu (:current id)) (unlogged-menu))})))
 
-(defn notfound-page "Generate the 404 page."
-  [] (index-tpl {:container (notfound)}))
+;; FIXME
+;; (defmacro with-id [req body]
+;;   (let [route-params (clojure.walk/keywordize-keys (:route-params req))
+;;         id (friend/identity req)]
+;;     ~@body))
+
+;; (macroexpand with-id)
+
+(defn notfound-page "Generate the 404 page."  
+  [] 
+  (index-tpl {:container (notfound)
+              :menu ""}))
 
 (defn about-page "Generate the about page."
-  [] (index-tpl {:container (about) :logo-link "/"}))
+  [req]
+  (let [route-params (clojure.walk/keywordize-keys (:route-params req))
+        id (friend/identity req)]
+    (index-tpl {:container (about) :logo-link "/"
+                :menu (if id (logged-menu (:current id)) (unlogged-menu))})))
 
 (defn tos-page "Generate the tos page."
-  [] (index-tpl {:container (tos)}))
+  [req]
+  (let [route-params (clojure.walk/keywordize-keys (:route-params req))
+        id (friend/identity req)]
+    (index-tpl {:container (tos)
+                :menu (if id (logged-menu (:current id)) (unlogged-menu))})))
 
 ;;; * Local variables
 
