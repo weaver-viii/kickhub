@@ -101,8 +101,10 @@
 
 ;;; Output to kickhub.css
 
+;; (def css-path-prefix "/home/guerry/install/git/boulot/kickhub/")
+
 (css {:output-to (str css-path-prefix "resources/public/css/kickhub.css")
-      :pretty-print? false}
+      :pretty-print? true}
      body
      container
      menu
