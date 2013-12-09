@@ -5,14 +5,6 @@
 
 ;;; * Global RSS feed
 
-(defn rss []
-  (apply rss/channel-xml
-         {:title "KickHub"
-          :link "http://kickhub.com"
-          :description "KickHub: New Supported Free Softwares"}
-         (filter #(not (empty? %))
-                 (map #(news-to-rss-item %) (get-news)))))
-
 (defrecord rss-item [title link description])
 
 (defn news-to-rss-item
@@ -30,6 +22,14 @@
                      (get-uid-field
                       (get-pid-field (:pid nparams) "by") "u")
                      pname))))))
+
+(defn rss []
+  (apply rss/channel-xml
+         {:title "KickHub"
+          :link "http://kickhub.com"
+          :description "KickHub: New Supported Free Softwares"}
+         (filter #(not (empty? %))
+                 (map #(news-to-rss-item %) (get-news)))))
 
 ;;; * Local variables
 
