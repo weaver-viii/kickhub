@@ -1,12 +1,12 @@
 body {
-  font-size: 15pt;
-  padding: 0;
-  margin: 0;
+  font-size: 14pt;
+  padding: 0em;
+  margin: 0em;
 }
 
 #container {
   padding-top: 3em;
-  width: 70%;
+  width: 60%;
   margin: auto;
 }
 
@@ -48,12 +48,12 @@ logo, img {
   position: absolute;
 }
 
-#msg {
-  color: #ff0000;
-  margin: auto;
-  width: 100%;
-  text-align: center;
+#msg, p.alert {
   padding-top: 1em;
+  text-align: center;
+  color: darkorange;
+  width: 60%;
+  margin: auto;
 }
 
 #notifications {
@@ -69,11 +69,19 @@ logo, img {
 }
 
 #footer {
-  background-color: #eee;
+  background-color: white;
   text-align: center;
-  border-top: 1px solid gray;
+  z-index: 100;
   padding: .2em;
   width: 100%;
   position: fixed;
   bottom: 0;
+}
+
+#footer, button {
+  margin: .3em;
+}
+
+a {
+  color: darkorange;
 }

@@ -9,12 +9,15 @@
 
 ;;; * body
 
+(def ^:private a
+  [:a {:color "darkorange"}])
+
 (def ^:private body
   [:body
-   {:margin "0"
-    :padding "0"
+   {:margin "0em"
+    :padding "0em"
     ;; :font-family "Monospace"
-    :font-size "15pt"}])
+    :font-size "14pt"}])
 
 ;;; * Container
 
@@ -22,7 +25,7 @@
   [:#container
    {:padding-top "3em"
     ;; :text-align "center"
-    :width "70%"
+    :width "60%"
     :margin "auto"}
    ])
 
@@ -70,12 +73,13 @@
 ;;; * Various
 
 (def ^:private msg
-  [:#msg
+  [:#msg :p.alert
    {:padding-top "1em"
-    :text-align "center"
-    :width "100%"
+    :width "60%"
     :margin "auto"
-    :color warning}])
+    :text-align "center"
+    :color "darkorange"
+    }])
 
 (def ^:private notifications
   [:#notifications {:display "inline"}])
@@ -92,12 +96,16 @@
   [:#footer
    {:text-align "center"
     :position "fixed"
-    :background-color "#eee"
-    :border-top "1px solid gray"
     :width "100%"
     :padding ".2em"
+    :background-color "white"
+    :z-index "100"
     :bottom "0"
     }])
+
+(def ^:private footer-link
+  [:#footer
+   :button {:margin ".3em"}])
 
 ;;; Output to kickhub.css
 
@@ -118,6 +126,8 @@
      info
      news
      footer
+     footer-link
+     a
 )
 
 ;;; * Local variables
