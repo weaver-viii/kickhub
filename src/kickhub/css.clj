@@ -63,7 +63,7 @@
 ;;; * logo
 
 (def ^:private logo
-  [:logo [:img
+  [:#logo [:img
    {:position "absolute"
     :width "120px"
     :top ".3em"
