@@ -33,7 +33,9 @@ Un système de don *différent* à chaque fois.
 
 ** Centralisation ?
 
-** Modèle économique ?
+** Modèle économique (Ramen) ?
+
+** (Pseudo)-anonymat ?
 
 * Kickhub : communauté
 
