@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <title>(Kickhub)</title>
-<meta name="author" content="(Bastien Guerry)"/>
+<meta name="author" content="(@bzg2)"/>
 <link rel="stylesheet" href="./reveal.js/css/reveal.min.css"/>
 <link rel="stylesheet" href="./reveal.js/css/theme/night.css" id="theme"/>
 
@@ -15,26 +15,149 @@
 <div class="slides">
 <section>
 <h1>Kickhub</h1>
-<h2>Bastien Guerry</h2>
+<h2>@bzg2</h2>
 <h2><a href="mailto:bzg@altern.org">bzg@altern.org</a></h2>
-<h2><span class="timestamp-wrapper"><span class="timestamp">&lt;2013-12-07 sam.&gt;</span></span></h2></section>
+<h2></h2></section>
 
 <section>
 <section id="sec-1" >
 
-<h2>Kickhub is&#x2026;</h2>
+<h2>Les problèmes</h2>
+</section>
+<section id="sec-1-1" >
+
+<h3>Côté technique</h3>
 <p>
-TBA
+Un système de don <b>différent</b> à chaque fois.
 </p>
+</section>
+<section id="sec-1-2" >
+
+<h3>Côté éthique</h3>
+<ul class="org-ul">
+<li>Manque de visibilité sur les dons existants.
+</li>
+
+<li>Confier ses données bancaires à un site ?
+</li>
+
+<li>Paypal?!
+</li>
+</ul>
 </section>
 </section>
 <section>
 <section id="sec-2" >
 
-<h2>Kickhub is not&#x2026;</h2>
+<h2>Kickhub : l'idée principale</h2>
+</section>
+<section id="sec-2-1" >
+
+<h3>Donation et crowdfunding</h3>
 <p>
-TBA
+&#x2026; même combat !
 </p>
+</section>
+<section id="sec-2-2" >
+
+<h3>Méta-système</h3>
+<p>
+&#x2026; pour rendre les dons <b>visibles</b>
+</p>
+</section>
+<section id="sec-2-3" >
+
+<h3>Mutualiser les possibilités de financement</h3>
+<p>
+&#x2026; a.k.a. <i>reverse crowdfunding</i>
+</p>
+</section>
+</section>
+<section>
+<section id="sec-3" >
+
+<h2>Défis</h2>
+</section>
+<section id="sec-3-1" >
+
+<h3>Centralisation ?</h3>
+
+</section>
+<section id="sec-3-2" >
+
+<h3>Modèle économique ?</h3>
+</section>
+</section>
+<section>
+<section id="sec-4" >
+
+<h2>Kickhub : communauté</h2>
+</section>
+<section id="sec-4-1" >
+
+<h3>Listes de discussion</h3>
+<ul class="org-ul">
+<li><code>users@lists.kickhub.com</code>
+</li>
+<li><code>users-fr@lists.kickhub.com</code>
+</li>
+</ul>
+</section>
+<section id="sec-4-2" >
+
+<h3>FLOSS GNU AGPL</h3>
+<ul class="org-ul">
+<li><a href="http://github.com/bgz/kickhub">http://github.com/bgz/kickhub</a>
+</li>
+<li><a href="http://docs.kickhub.com">http://docs.kickhub.com</a>
+</li>
+<li><a href="http://beta.kickhub.com">http://beta.kickhub.com</a>
+</li>
+</ul>
+</section>
+</section>
+<section>
+<section id="sec-5" >
+
+<h2>KickHub stack</h2>
+</section>
+<section id="sec-5-1" >
+
+<h3>Server</h3>
+<ul class="org-ul">
+<li>Debian 7
+</li>
+<li>mailman
+</li>
+<li>Immutant (Jboss)
+</li>
+<li>nginx
+</li>
+<li><code>http</code> and <code>https</code>
+</li>
+</ul>
+</section>
+<section id="sec-5-2" >
+
+<h3>Clojure</h3>
+<div class="org-src-container">
+
+<pre class="src src-clojure">(<span style="color: #FBDE2D;">ns</span> kickhub.core
+  (<span style="color: #4c83ff;">:require</span> [cemerick.friend <span style="color: #4c83ff;">:as</span> friend]
+            [cemerick.friend.workflows <span style="color: #4c83ff;">:as</span> workflows]
+            [clojurewerkz.scrypt.core <span style="color: #4c83ff;">:as</span> sc]
+            [compojure.core <span style="color: #4c83ff;">:refer</span> [<span style="color: #919191;">GET</span> <span style="color: #919191;">POST</span> defroutes]]
+            [compojure.route <span style="color: #4c83ff;">:as</span> route]
+            [friend-oauth2.workflow <span style="color: #4c83ff;">:as</span> oauth2]
+            [friend-oauth2.util <span style="color: #4c83ff;">:as</span> oauth2-util]
+            [kickhub.html.templates <span style="color: #4c83ff;">:refer</span> <span style="color: #4c83ff;">:all</span>]
+            [kickhub.model <span style="color: #4c83ff;">:refer</span> <span style="color: #4c83ff;">:all</span>]
+            [kickhub.github <span style="color: #4c83ff;">:refer</span> <span style="color: #4c83ff;">:all</span>]
+            [noir.util.middleware <span style="color: #4c83ff;">:as</span> middleware]
+            [ring.util.response <span style="color: #4c83ff;">:as</span> resp]
+            [ring.util.codec <span style="color: #4c83ff;">:as</span> codec]))
+</pre>
+</div>
 </section>
 </section>
 </div>

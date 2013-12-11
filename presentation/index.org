@@ -1,7 +1,64 @@
 #+TITLE: Kickhub
-#+DATE: <2013-12-07 sam.>
+#+AUTHOR: @bzg2
 
-* Kickhub is...
+* Les problèmes
+
+** Côté technique
+
+Un système de don *différent* à chaque fois.
+
+** Côté éthique
+
+- Manque de visibilité sur les dons existants.
+
+- Confier ses données bancaires à un site ?
+
+- Paypal?!
+
+* Kickhub : l'idée principale
+
+** Donation et crowdfunding
+
+... même combat !
+
+** Méta-système
+
+... pour rendre les dons *visibles*
+
+** Mutualiser les possibilités de financement
+
+... a.k.a. /reverse crowdfunding/
+
+* Défis
+
+** Centralisation ?
+
+** Modèle économique ?
+
+* Kickhub : communauté
+
+** Listes de discussion
+
+- =users@lists.kickhub.com=
+- =users-fr@lists.kickhub.com=
+
+** FLOSS GNU AGPL
+
+- http://github.com/bgz/kickhub
+- http://docs.kickhub.com
+- http://beta.kickhub.com
+
+* KickHub stack
+
+** Server
+
+- Debian 7
+- mailman
+- Immutant (Jboss)
+- nginx
+- =http= and =https=
+
+** Clojure
 
 #+BEGIN_SRC clojure
 (ns kickhub.core
@@ -20,7 +77,4 @@
             [ring.util.codec :as codec]))
 #+END_SRC
 
-* Kickhub is not...
-
-TBA
 
