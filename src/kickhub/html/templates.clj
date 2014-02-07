@@ -77,7 +77,7 @@
   [{:keys [name]}]
   [:a] (html/do->
         (html/content name)
-        (html/set-attr :href (str "http://localhost:8080/project/" name))))
+        (html/set-attr :href (str (System/getenv "github_client_domain") "/project/" name))))
 
 (html/defsnippet
   ^{:doc "List of Projects snippet." :dynamic true}
@@ -125,7 +125,8 @@
   [:#logged-menu]
   [username]
   [:ul :li :a.profile]
-  (html/set-attr :href (str "http://localhost:8080/user/" username)))
+  (html/set-attr :href (str (System/getenv "github_client_domain")
+                            "/user/" username)))
 
 (html/defsnippet ^{:doc "Snippet for the unlogged menu."}
   unlogged-menu "kickhub/html/forms.html" [:#unlogged-menu] [])

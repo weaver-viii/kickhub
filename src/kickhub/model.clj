@@ -116,10 +116,10 @@ id is a string (e.g. \"uid\", \"pid\" or \"tid\")."
         body (format "Welcome to Kickhub!
 
 Here is your activation link:
-http://localhost:8080/activate/%s
+%s/activate/%s
 
 -- 
- Bastien" authid)]
+ Bastien" (System/getenv "github_client_domain") authid)]
     (send-email email subject body)))
     
 (defn send-email-subscribe-mailing
@@ -133,7 +133,9 @@ http://localhost:8080/activate/%s
   "Send an email notification to `name` for a new project."
   [name repo uid]
   (let [subject "Thanks for your new project!"
-        project_url (format "http://localhost:8080/project/%s" name)]
+        project_url (format "%s/project/%s"
+                            (System/getenv "github_client_domain")
+                            name)]
     (send-email (get-uid-field uid "e")
                 subject
                 project_url)))
@@ -146,9 +148,9 @@ http://localhost:8080/activate/%s
         subject (format "You received some support from %s" from_user)
         from_email (get-uid-field uid "e")
         for_project (get-pid-field pid "name")
-        project_url (format "http://localhost:8080/project/%s" for_project)
-        user_url (format "http://localhost:8080/user/%s" from_user)
-        confirm_url (format "http://localhost:8080/confirm/%s" authid)]
+        project_url (format "%s/project/%s" (System/getenv "github_client_domain") for_project)
+        user_url (format "%s/user/%s" (System/getenv "github_client_domain") from_user)
+        confirm_url (format "%s/confirm/%s" (System/getenv "github_client_domain") authid)]
     (send-email from_email
                 subject
                 (str project_url "\n"
