@@ -10,9 +10,15 @@ body {
   margin: auto;
 }
 
-#menu {
+#gravatar {
   right: .8em;
   top: .8em;
+  position: fixed;
+}
+
+#menu {
+  right: .8em;
+  top: 5.5em;
   position: fixed;
 }
 

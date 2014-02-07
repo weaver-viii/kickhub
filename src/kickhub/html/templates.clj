@@ -5,6 +5,7 @@
             [net.cgrand.reload :as reload]
             [ring.util.response :as resp]))
 
+;; FIXME: Need to double-check (again) if it works
 (reload/auto-reload *ns*)
 
 ;;; * Utility functions
@@ -23,9 +24,10 @@
 
 (html/deftemplate ^{:doc "Main index template"}
   index-tpl "kickhub/html/base.html"
-  [{:keys [container logo-link msg menu]}]
+  [{:keys [container logo-link msg menu gravatar]}]
   ;; In /about, the logo points to the index page
   [:#menu] (maybe-content menu)
+  [:#gravatar :img] (html/set-attr :src (or gravatar ""))
   [:#msg :p] (maybe-content msg)
   [:#logo :a] (html/set-attr :href (or logo-link "/about"))
   ;; Set the menu item
@@ -145,10 +147,15 @@
 (defn index-page
   "Generate the index page."
   [req & {:keys [msg]}]
-  (let [id (friend/identity req)]
+  (let [id (friend/identity req)
+        ]
     (index-tpl {:container
                 (news (map news-to-sentence (reverse (get-news))))
                 :menu (if id (logged-menu (:current id)) (unlogged-menu))
+                :gravatar (when id
+                            (let [username (:current id)
+                                  uid (get-username-uid username)]
+                              (get-uid-field uid "picurl")))
                 :msg (or msg (if id
                                "You are now logged in"
                                "Please login or register"))})))
@@ -184,6 +191,7 @@
     (do (create-project name repo uid)
         (resp/redirect (str "/user/" username)))
     (index-tpl {:container (submit-project)
+                :gravatar (get-uid-field uid "picurl")
                 :menu (logged-menu (:current id))}))))
 
 (defn submit-donation-page
@@ -201,6 +209,7 @@
       (do (create-transaction amount pid uid fuid)
           (resp/redirect (str "/user/" username)))
       (index-tpl {:container (submit-donation)
+                  :gravatar (get-uid-field fuid "picurl")
                   :menu (logged-menu (:current id))}))))
 
 (defn user-page
@@ -214,6 +223,7 @@
     (index-tpl {:container
                 (concat (my-projects (get-uid-projects uid))
                         (my-donations (get-uid-transactions uid)))
+                :gravatar (get-uid-field uid "picurl")
                 :menu (if id (logged-menu (:current id)) (unlogged-menu))})))
 
 (defn project-page
@@ -237,8 +247,8 @@
 
 ;; (macroexpand with-id)
 
-(defn notfound-page "Generate the 404 page."  
-  [] 
+(defn notfound-page "Generate the 404 page."
+  []
   (index-tpl {:container (notfound)
               :menu ""}))
 
@@ -247,6 +257,7 @@
   (let [route-params (clojure.walk/keywordize-keys (:route-params req))
         id (friend/identity req)]
     (index-tpl {:container (about) :logo-link "/"
+                :gravatar (get-uid-field (get-username-uid (:current id)) "picurl")
                 :menu (if id (logged-menu (:current id)) (unlogged-menu))})))
 
 (defn tos-page "Generate the tos page."
@@ -254,6 +265,7 @@
   (let [route-params (clojure.walk/keywordize-keys (:route-params req))
         id (friend/identity req)]
     (index-tpl {:container (tos)
+                :gravatar (get-uid-field (get-username-uid (:current id)) "picurl")
                 :menu (if id (logged-menu (:current id)) (unlogged-menu))})))
 
 ;;; * Local variables

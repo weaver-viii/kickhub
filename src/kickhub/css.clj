@@ -45,6 +45,13 @@
 (def ^:private menu
   [:#menu [:li {:display "inline"}]
    {:position "fixed"
+    :top "5.5em"
+    :right ".8em"}
+   ])
+
+(def ^:private gravatar
+  [:#gravatar
+   {:position "fixed"
     :top ".8em"
     :right ".8em"}
    ])
@@ -115,6 +122,7 @@
       :pretty-print? true}
      body
      container
+     gravatar
      menu
      li
      input
