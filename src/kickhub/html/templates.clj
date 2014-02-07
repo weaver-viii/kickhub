@@ -167,6 +167,7 @@
         id (friend/identity req)]
     (index-tpl {:container (if id "You are already logged in" (login))
                 :menu (unlogged-menu)
+                :gravatar (get-uid-field (get-username-uid (:current id)) "picurl")
                 :msg (if (= (:login_failed params) "Y")
                        "Error when logging in..."
                        "")})))
