@@ -115,8 +115,8 @@
   login "kickhub/html/forms.html" [:#login] [])
 (html/defsnippet ^{:doc "Snippet for the register form."}
   register "kickhub/html/forms.html" [:#register] [username email]
-  [:.input-group :#username] (html/set-attr :placeholder username)
-  [:.input-group :#email] (html/set-attr :placeholder email))
+  [:.input-group :#username] (html/set-attr :value username)
+  [:.input-group :#email] (html/set-attr :value email))
 (html/defsnippet ^{:doc "Snippet for the submit email form."}
   submit-email "kickhub/html/forms.html" [:#submit-email] [])
 (html/defsnippet ^{:doc "Snippet for the submit project form."}
@@ -154,10 +154,7 @@
     (index-tpl {:container
                 (news (map news-to-sentence (reverse (get-news))))
                 :menu (if id (logged-menu (:current id)) (unlogged-menu))
-                :gravatar (when id
-                            (let [username (:current id)
-                                  uid (get-username-uid username)]
-                              (get-uid-field uid "picurl")))
+                :gravatar (get-uid-field (get-username-uid (:current id)) "picurl")
                 :msg (or msg (if id
                                "You are now logged in"
                                "Please login or register"))})))
