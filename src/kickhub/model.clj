@@ -95,7 +95,7 @@ id is a string (e.g. \"uid\", \"pid\" or \"tid\")."
 
 ;;; * Email processing
 
-;; FIXME: This uses bzg@bzg.fr as the value of the From: header
+;; FIXME: This uses bzg@kickhub.com as the value of the From: header
 ;; We may store the From: header's value in a variable.
 (defn- send-email
   "Send an email to the `email` address with `subject` and `body`."
@@ -103,7 +103,7 @@ id is a string (e.g. \"uid\", \"pid\" or \"tid\")."
   (postal/send-message
    ^{:host "localhost"
      :port 25}
-   {:from "Bastien <bzg@bzg.fr>"
+   {:from "Bastien <bzg@kickhub.com>"
     :to email
     :subject subject
     :body body}))
@@ -123,10 +123,10 @@ Here is your activation link:
     (send-email email subject body)))
     
 (defn send-email-subscribe-mailing
-  "Send an mail to `subscriber-email` to notify bzg@bzg.fr of new subscribers."
+  "Send an mail to `subscriber-email` to notify bzg@kickhub.com of new subscribers."
   [subscriber-email]
   (let [subject "New subscriber for Kickhub"]
-    (send-email "bzg@bzg.fr" subject subscriber-email)))
+    (send-email "bzg@kickhub.com" subject subscriber-email)))
 
 ;; FIXME: use repo?
 (defn- send-email-new-project
