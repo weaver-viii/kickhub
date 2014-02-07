@@ -1,6 +1,7 @@
 (ns kickhub.html.templates
   (:require [cemerick.friend :as friend]
             [kickhub.model :refer :all]
+            [kickhub.github :refer :all]
             [net.cgrand.enlive-html :as html]
             [net.cgrand.reload :as reload]
             [ring.util.response :as resp]))
@@ -113,7 +114,9 @@
 (html/defsnippet ^{:doc "Snippet for the login form."}
   login "kickhub/html/forms.html" [:#login] [])
 (html/defsnippet ^{:doc "Snippet for the register form."}
-  register "kickhub/html/forms.html" [:#register] [])
+  register "kickhub/html/forms.html" [:#register] [username email]
+  [:.input-group :#username] (html/set-attr :placeholder username)
+  [:.input-group :#email] (html/set-attr :placeholder email))
 (html/defsnippet ^{:doc "Snippet for the submit email form."}
   submit-email "kickhub/html/forms.html" [:#submit-email] [])
 (html/defsnippet ^{:doc "Snippet for the submit project form."}
@@ -147,8 +150,7 @@
 (defn index-page
   "Generate the index page."
   [req & {:keys [msg]}]
-  (let [id (friend/identity req)
-        ]
+  (let [id (friend/identity req)]
     (index-tpl {:container
                 (news (map news-to-sentence (reverse (get-news))))
                 :menu (if id (logged-menu (:current id)) (unlogged-menu))
@@ -175,9 +177,27 @@
 (defn register-page
   "Generate the register page."
   [params]
-  (index-tpl {:container (register)
+  (index-tpl {:container (register "Username" "Email")
               :menu (unlogged-menu)}))
 
+(defn register-page-gh
+  "Register via Github."
+  [request]
+  (let [authentications
+        (get-in request [:session :cemerick.friend/identity :authentications])
+        access-token (:identity (second (first authentications)))
+        user_infos (github-user-info access-token)
+        user_basic_infos (github-user-basic-info access-token)]
+    ;; FIXME
+    ;; (if (get-username-uid (:username user_basic_infos))
+    ;;   (index-page request)
+    (index-tpl {:msg ;;(:login user_basic_infos)
+                "Select a password for your new account"
+                :container (register (:username user_basic_infos)
+                                     (:email user_basic_infos))
+                :gravatar (:picurl user_basic_infos)
+                :menu (logged-menu (:username user_basic_infos))})))
+  
 (defn submit-project-page
   "Generate the page to submit a project."
   [req]

@@ -109,7 +109,7 @@
   (friend/authenticate
    handler
    {:allow-anon? true
-    :default-landing-uri "/"
+    :default-landing-uri "/register-via-github"
     :workflows
     [(oauth2/workflow
       {:client-config gh-client-config
@@ -145,6 +145,7 @@
   (GET "/project/:pname" req (project-page req))
 
   (GET "/rss" [] (rss))
+  (GET "/register-via-github" req (register-page-gh req))
   (GET "/register" [] (register-page nil))
   (POST "/register" {params :params} (register-user params))
 

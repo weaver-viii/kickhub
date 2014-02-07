@@ -10,9 +10,9 @@
 
 <form id="register" action="/register" method="post">
   <div class="input-group">
-    <input class="form-control" type="text" name="username" placeholder="Username" />
-    <input class="form-control" type="text" name="email" placeholder="Email" />
-    <input class="form-control" type="password" name="password" placeholder="Password" />
+    <input class="form-control" type="text" id="username" name="username" placeholder="Username" />
+    <input class="form-control" type="text" id="email" name="email" placeholder="Email" />
+    <input class="form-control" type="password" id="password" name="password" placeholder="Password" />
     <button type="submit" class="btn btn-info">Register</button>
   </div>
 </form>
@@ -56,6 +56,7 @@
   <ul class="dropdown-menu" role="menu">
     <!-- <li role="presentation" class="dropdown-header">Dropdown header</li> -->
     <li><a href="/login" role="menuitem" tabindex="-1">Login</a></li>
+    <li><a href="/github" role="menuitem" tabindex="-1">Login with Github</a></li>
     <li><a href="/register" role="menuitem" tabindex="-1">Register</a></li>
   </ul>
 </div>

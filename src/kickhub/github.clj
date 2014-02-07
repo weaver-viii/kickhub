@@ -25,14 +25,15 @@
     (assoc {}
       :username (:login infos)
       :email (:email infos)
-      :pic "picurl" (str "http://www.gravatar.com/avatar/" (:gravatar_id infos)))))
+      :picurl (str "http://www.gravatar.com/avatar/" (:gravatar_id infos)))))
 
 (defn render-repos-page
   "Display user repos."
   [request]
   (let [authentications
         (get-in request [:session :cemerick.friend/identity :authentications])
-        access-token (:access_token (second (first authentications)))
+        ;;        access-token (:access_token (second (first authentications)))
+        access-token (:identity (second (first authentications)))
         repos-response (github-user-repos access-token)]
     (str (vec (map :name repos-response)))))
 
@@ -41,7 +42,8 @@
   [request]
   (let [authentications
         (get-in request [:session :cemerick.friend/identity :authentications])
-        access-token (:access_token (second (first authentications)))
+        ;;        access-token (:access_token (second (first authentications)))
+        access-token (:identity (second (first authentications)))
         user-response (github-user-info access-token)]
     ;; FIXME: used for tests only so far
     (pr-str user-response)))
