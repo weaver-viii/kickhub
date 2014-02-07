@@ -9,7 +9,7 @@
 | Done   | transactions | list | (1, ...) | list of transactions |
 |--------+--------------+------+----------+----------------------|
 | TODO   | devs         | list | (1, ...) | list of developers   |
-| TODO   | donators     | list | (1, ...) | list of donators     | 
+| TODO   | donators     | list | (1, ...) | list of donators     |
 
 Developers and donators are both subsets of users.
 
@@ -58,10 +58,9 @@ A user becomes a developer when she publishes a new project.
 |--------+------------+--------+-------------------+---------------------|
 | Done   | global:nid | string | 1                 | news identifier     |
 | Done   | news       | list   | (1, ...)          | list of news        |
-| Done   | nid:1      | hash   | {type: date: ...} | properties for news | 
+| Done   | nid:1      | hash   | {type: date: ...} | properties for news |
 
-* Notes  
+* Notes
 
 Don't implement "followers" before making sure that using Github graph
 of followers is not enough.
-
