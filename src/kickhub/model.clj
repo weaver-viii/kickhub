@@ -264,6 +264,15 @@ News can be of type:
         (send-email-activate-account email authid)
         (resp/redirect "/"))))
 
+(defn update-user
+  "Update user information"
+  [params]
+  (do (wcar*
+       (car/hmset
+        (str "uid:" (get-username-uid (session/get :username)))
+        "p" (sc/encrypt (:password params) 16384 8 1)))
+      (resp/redirect (:from params))))
+
 (defn register-user
   "Register a new user in the db."
   [{:keys [username email password]}]

@@ -137,6 +137,13 @@
 (html/defsnippet ^{:doc "Snippet for the unlogged menu."}
   unlogged-menu "kickhub/html/forms.html" [:#unlogged-menu] [])
 
+(html/defsnippet ^{:doc "Snippet for the personal data form."}
+  personal-data "kickhub/html/forms.html" [:#personal-data] []
+  [:form]
+  (html/set-attr :action (str "/user/update"))
+  [:form :#from]
+  (html/set-attr :value (str "/user/" (session/get :username))))
+
 ;;; * Views
 
 (defn index-tba-page
@@ -233,7 +240,8 @@
   (let [username (session/get :username)
         uid (get-username-uid username)]
     (index-tpl {:container
-                (concat (my-projects (get-uid-projects uid))
+                (concat (personal-data)
+                        (my-projects (get-uid-projects uid))
                         (my-donations (get-uid-transactions uid)))
                 :gravatar (get-uid-field uid "picurl")
                 :menu (if username (logged-menu username) (unlogged-menu))})))
@@ -249,6 +257,7 @@
     (index-tpl {:container (str "Project: " (get-pid-field pid "name")
                                 " by " (get-uid-field
                                         (get-pid-field pid "by") "u"))
+                :gravatar (get-uid-field (get-username-uid username) "picurl")
                 :menu (if username (logged-menu username) (unlogged-menu))})))
 
 (defn notfound-page "Generate the 404 page."
@@ -258,16 +267,14 @@
 
 (defn about-page "Generate the about page."
   [req]
-  (let [route-params (clojure.walk/keywordize-keys (:route-params req))
-        username (session/get :username)]
+  (let [username (session/get :username)]
     (index-tpl {:container (about) :logo-link "/"
-                :gravatar (get-uid-field (get-username-uid (session/get :username)) "picurl")
+                :gravatar (get-uid-field (get-username-uid username) "picurl")
                 :menu (if username (logged-menu username) (unlogged-menu))})))
 
 (defn tos-page "Generate the tos page."
   [req]
-  (let [route-params (clojure.walk/keywordize-keys (:route-params req))
-        username (session/get :username)]
+  (let [username (session/get :username)]
     (index-tpl {:container (tos)
                 :gravatar (get-uid-field (get-username-uid username) "picurl")
                 :menu (if username (logged-menu username) (unlogged-menu))})))

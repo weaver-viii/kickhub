@@ -147,6 +147,7 @@
             (index-page nil :msg "Transaction confirmed, thanks"))))
 
   (GET "/user/:username" req (user-page req))
+  (POST "/user/update" {params :params} (update-user params))
   (GET "/project/:pname" req (project-page req))
 
   (GET "/rss" [] (rss))
