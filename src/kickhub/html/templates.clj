@@ -1,6 +1,7 @@
 (ns kickhub.html.templates
   (:require [cemerick.friend :as friend]
             [kickhub.model :refer :all]
+            [noir.session :as session]
             [kickhub.github :refer :all]
             [net.cgrand.enlive-html :as html]
             [net.cgrand.reload :as reload]
@@ -150,12 +151,12 @@
 (defn index-page
   "Generate the index page."
   [req & {:keys [msg]}]
-  (let [id (friend/identity req)]
+  (let [username (session/get :username)]
     (index-tpl {:container
                 (news (map news-to-sentence (reverse (get-news))))
-                :menu (if id (logged-menu (:current id)) (unlogged-menu))
-                :gravatar (get-uid-field (get-username-uid (:current id)) "picurl")
-                :msg (or msg (if id
+                :menu (if username (logged-menu username) (unlogged-menu))
+                :gravatar (get-uid-field (get-username-uid username) "picurl")
+                :msg (or msg (if username
                                "You are now logged in"
                                "Please login or register"))})))
 
@@ -163,10 +164,10 @@
   "Generate the login page."
   [req]
   (let [params (clojure.walk/keywordize-keys (:form-params req))
-        id (friend/identity req)]
-    (index-tpl {:container (if id "You are already logged in" (login))
-                :menu (unlogged-menu)
-                :gravatar (get-uid-field (get-username-uid (:current id)) "picurl")
+        username (session/get :username)]
+    (index-tpl {:container (if username "You are already logged in" (login))
+                :menu (if username (logged-menu username) (unlogged-menu))
+                :gravatar (get-uid-field (get-username-uid username) "picurl")
                 :msg (if (= (:login_failed params) "Y")
                        "Error when logging in..."
                        "")})))
@@ -184,43 +185,39 @@
         (get-in request [:session :cemerick.friend/identity :authentications])
         access-token (:identity (second (first authentications)))
         user_infos (github-user-info access-token)
-        user_basic_infos (github-user-basic-info access-token)]
-    ;; FIXME
-    ;; (if (get-username-uid (:username user_basic_infos))
-    ;;   (index-page request)
-    (index-tpl {:msg ;;(:login user_basic_infos)
-                "Select a password for your new account"
-                :container (register (:username user_basic_infos)
-                                     (:email user_basic_infos))
-                :gravatar (:picurl user_basic_infos)
-                :menu (logged-menu (:username user_basic_infos))})))
+        user_basic_infos (github-user-basic-info access-token)
+        username (:username user_basic_infos)
+        email (:email user_basic_infos)]
+    (if (get-username-uid username)
+      (do (session/put! :username username)
+          (resp/redirect "/"))
+      (index-tpl {:msg "Select a password for your new account"
+                  :container (register username email)
+                  :gravatar (get-uid-field (get-username-uid username) "picurl")
+                  :menu (unlogged-menu)}))))
   
 (defn submit-project-page
   "Generate the page to submit a project."
   [req]
-  (let [route-params (clojure.walk/keywordize-keys (:route-params req))
-        id (friend/identity req)
+  (let [username (session/get :username)
         params (clojure.walk/keywordize-keys (:form-params req))
         name (:name params)
         repo (:repo params)
-        username (:current id)
         uid (get-username-uid username)]
   (if (not (empty? params))
     (do (create-project name repo uid)
         (resp/redirect (str "/user/" username)))
     (index-tpl {:container (submit-project)
                 :gravatar (get-uid-field uid "picurl")
-                :menu (logged-menu (:current id))}))))
+                :menu (logged-menu username)}))))
 
 (defn submit-donation-page
   "Generate the page to submit a donation."
   [req]
-  (let [route-params (clojure.walk/keywordize-keys (:route-params req))
-        id (friend/identity req)
+  (let [username (session/get :username)
         params (clojure.walk/keywordize-keys (:form-params req))
         amount (:amount params)
         pid (:pid params)
-        username (:current id)
         fuid (get-username-uid username)
         uid (get-pid-field pid "by")]
     (if (not (empty? params))
@@ -228,21 +225,18 @@
           (resp/redirect (str "/user/" username)))
       (index-tpl {:container (submit-donation)
                   :gravatar (get-uid-field fuid "picurl")
-                  :menu (logged-menu (:current id))}))))
+                  :menu (logged-menu username)}))))
 
 (defn user-page
   "Generate the page to display a user information."
   [req]
-  (let [;; params (clojure.walk/keywordize-keys (:form-params req))
-        route-params (clojure.walk/keywordize-keys (:route-params req))
-        username (:username route-params)
-        uid (get-username-uid username)
-        id (friend/identity req)]
+  (let [username (session/get :username)
+        uid (get-username-uid username)]
     (index-tpl {:container
                 (concat (my-projects (get-uid-projects uid))
                         (my-donations (get-uid-transactions uid)))
                 :gravatar (get-uid-field uid "picurl")
-                :menu (if id (logged-menu (:current id)) (unlogged-menu))})))
+                :menu (if username (logged-menu username) (unlogged-menu))})))
 
 (defn project-page
   "Generate the page to display a project information."
@@ -251,19 +245,11 @@
         route-params (clojure.walk/keywordize-keys (:route-params req))
         pname (:pname route-params)
         pid (get-pname-pid pname)
-        id (friend/identity req)]
+        username (session/get :username)]
     (index-tpl {:container (str "Project: " (get-pid-field pid "name")
                                 " by " (get-uid-field
                                         (get-pid-field pid "by") "u"))
-                :menu (if id (logged-menu (:current id)) (unlogged-menu))})))
-
-;; FIXME
-;; (defmacro with-id [req body]
-;;   (let [route-params (clojure.walk/keywordize-keys (:route-params req))
-;;         id (friend/identity req)]
-;;     ~@body))
-
-;; (macroexpand with-id)
+                :menu (if username (logged-menu username) (unlogged-menu))})))
 
 (defn notfound-page "Generate the 404 page."
   []
@@ -273,18 +259,18 @@
 (defn about-page "Generate the about page."
   [req]
   (let [route-params (clojure.walk/keywordize-keys (:route-params req))
-        id (friend/identity req)]
+        username (session/get :username)]
     (index-tpl {:container (about) :logo-link "/"
-                :gravatar (get-uid-field (get-username-uid (:current id)) "picurl")
-                :menu (if id (logged-menu (:current id)) (unlogged-menu))})))
+                :gravatar (get-uid-field (get-username-uid (session/get :username)) "picurl")
+                :menu (if username (logged-menu username) (unlogged-menu))})))
 
 (defn tos-page "Generate the tos page."
   [req]
   (let [route-params (clojure.walk/keywordize-keys (:route-params req))
-        id (friend/identity req)]
+        username (session/get :username)]
     (index-tpl {:container (tos)
-                :gravatar (get-uid-field (get-username-uid (:current id)) "picurl")
-                :menu (if id (logged-menu (:current id)) (unlogged-menu))})))
+                :gravatar (get-uid-field (get-username-uid username) "picurl")
+                :menu (if username (logged-menu username) (unlogged-menu))})))
 
 ;;; * Local variables
 

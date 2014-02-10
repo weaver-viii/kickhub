@@ -52,6 +52,7 @@
   (friend/authenticate
    handler
    {:allow-anon? true
+    :default-landing-uri "/set-session"
     :workflows [(workflows/interactive-form
                  :allow-anon? true
                  :login-uri "/login"
@@ -109,7 +110,7 @@
   (friend/authenticate
    handler
    {:allow-anon? true
-    :default-landing-uri "/register-via-github"
+    :default-landing-uri "/maybe-register"
     :workflows
     [(oauth2/workflow
       {:client-config gh-client-config
@@ -130,6 +131,10 @@
   ;; (POST "/" {params :params} (email-to-mailing params))
   (GET "/" req (index-page req))
   (GET "/login" req (login-page req))
+  (GET "/set-session" req (friend/authorize
+                           #{::users}
+                           (session/put! :username (:current (friend/identity req)))
+                           (resp/redirect "/")))
   (GET "/activate/:authid" [authid]
        (friend/authorize
         #{::users}
@@ -145,10 +150,11 @@
   (GET "/project/:pname" req (project-page req))
 
   (GET "/rss" [] (rss))
-  (GET "/register-via-github" req (register-page-gh req))
+  (GET "/maybe-register" req (register-page-gh req))
   (GET "/register" [] (register-page nil))
-  (POST "/register" {params :params} (register-user params))
-
+  (POST "/register" {params :params}
+        (do (register-user params)
+            (resp/redirect "/login")))
   (GET "/newproject" req (submit-project-page req))
   (POST "/newproject" req (submit-project-page req))
   (GET "/donation" req (submit-donation-page req))
@@ -157,7 +163,7 @@
   (GET "/about" req (about-page req))
   (GET "/tos" req (tos-page req))
   (GET "/logout" req (logout req))
-  (GET "/test" req (if-let [identity (friend/identity req)] (pr-str identity) "notloggedin"))
+  (GET "/test" req (pr-str req))
   (route/resources "/")
   (route/not-found (notfound-page)))
 
