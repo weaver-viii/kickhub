@@ -12,6 +12,7 @@ pom.xml
 /.lein-*
 /.env
 *.log
+*.rdb
 .nrepl-port
 ChangeLog
 todo.org
