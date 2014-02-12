@@ -155,6 +155,20 @@
                      (str (:m params) " is now subscribed")
                      "")}))
 
+(defn user-page
+  "Generate the page to display a user information."
+  [username & msg]
+  (let [username (or username (session/get :username))
+        ;; FIXME: display is different when connected/disconnected
+        uid (get-username-uid username)]
+    (index-tpl {:container
+                (concat (personal-data)
+                        (my-projects (get-uid-projects uid))
+                        (my-donations (get-uid-transactions uid)))
+                :msg msg
+                :gravatar (get-uid-field uid "picurl")
+                :menu (if username (logged-menu username) (unlogged-menu))})))
+
 (defn index-page
   "Generate the index page."
   [req & {:keys [msg]}]
@@ -172,9 +186,11 @@
   [req]
   (let [params (clojure.walk/keywordize-keys (:form-params req))
         username (session/get :username)]
-    (index-tpl {:container (if username "You are already logged in" (login))
+    (index-tpl {:container (if username "You are already logged in"
+                               (login))
                 :menu (if username (logged-menu username) (unlogged-menu))
                 :gravatar (get-uid-field (get-username-uid username) "picurl")
+                ;; FIXME
                 :msg (if (= (:login_failed params) "Y")
                        "Error when logging in..."
                        "")})))
@@ -182,8 +198,10 @@
 (defn register-page
   "Generate the register page."
   [params]
-  (index-tpl {:container (register "Username" "Email")
-              :menu (unlogged-menu)}))
+  (let [username (session/get :username)]
+    (index-tpl {:container (register "Username" "Email")
+                :gravatar (get-uid-field (get-username-uid username) "picurl")
+                :menu (unlogged-menu)})))
 
 (defn register-page-gh
   "Register via Github."
@@ -234,17 +252,6 @@
                   :gravatar (get-uid-field fuid "picurl")
                   :menu (logged-menu username)}))))
 
-(defn user-page
-  "Generate the page to display a user information."
-  [req]
-  (let [username (session/get :username)
-        uid (get-username-uid username)]
-    (index-tpl {:container
-                (concat (personal-data)
-                        (my-projects (get-uid-projects uid))
-                        (my-donations (get-uid-transactions uid)))
-                :gravatar (get-uid-field uid "picurl")
-                :menu (if username (logged-menu username) (unlogged-menu))})))
 
 (defn project-page
   "Generate the page to display a project information."

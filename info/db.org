@@ -20,16 +20,17 @@ A user becomes a developer when she publishes a new project.
 
 * Users
 
-| Status | Key Name         | Type   | Example value               | Description                                  |
-|--------+------------------+--------+-----------------------------+----------------------------------------------|
-| Done   | global:uid       | string | 1                           |                                              |
-| Done   | uid:1            | hash   | {u: p: e: picurl: created:} |                                              |
-| Done   | user:bzg:uid     | string | 1                           | get the uid from user's name                 |
-| Done   | users            | list   | (1, ...)                    |                                              |
-| Done   | uid:1:apid       | set    | {1, 2}                      | set of projects for which user is admin      |
-| Done   | uid:1:atid       | set    | {1, 2}                      | set of transactions for which user is author |
-| Done   | uid:1:auth       | string | 3b7b0677...                 | get the auth key for a user                  |
-| Done   | auth:3b7b0677... | string | 2                           | get the user for a auth key                  |
+| Status | Key Name                | Type   | Example value               | Description                                  |
+|--------+-------------------------+--------+-----------------------------+----------------------------------------------|
+| Done   | global:uid              | string | 1                           |                                              |
+| Done   | uid:1                   | hash   | {u: p: e: picurl: created:} |                                              |
+| Done   | user:bzg:uid            | string | 1                           | get the uid from user's name                 |
+| Done   | user:bzg@altern.org:uid | string | 1                           | get the uid from user's email                |
+| Done   | users                   | list   | (1, ...)                    |                                              |
+| Done   | uid:1:apid              | set    | {1, 2}                      | set of projects for which user is admin      |
+| Done   | uid:1:atid              | set    | {1, 2}                      | set of transactions for which user is author |
+| Done   | uid:1:auth              | string | 3b7b0677...                 | get the auth key for a user                  |
+| Done   | auth:3b7b0677...        | string | 2                           | get the user for a auth key                  |
 
 * Projects
 

@@ -5,6 +5,7 @@
    [postal.core :as postal]
    [clojurewerkz.scrypt.core :as sc]
    [ring.util.response :as resp]
+   [noir.session :as session]
    [taoensso.carmine :as car]))
 
 ;;; * Carmine connection and macro
@@ -40,6 +41,11 @@ id is a string (e.g. \"uid\", \"pid\" or \"tid\")."
   "Given a username, return the corresponding uid."
   [username]
   (wcar* (car/get (str "user:" username ":uid"))))
+
+(defn get-email-uid
+  "Given an email, return the corresponding uid."
+  [email]
+  (wcar* (car/get (str "user:" email ":uid"))))
 
 (defn get-pname-pid
   "Given a project's name, return the corresponding pid."
@@ -97,7 +103,7 @@ id is a string (e.g. \"uid\", \"pid\" or \"tid\")."
 
 ;; FIXME: This uses bzg@kickhub.com as the value of the From: header
 ;; We may store the From: header's value in a variable.
-(defn- send-email
+(defn send-email
   "Send an email to the `email` address with `subject` and `body`."
   [email subject body]
   (postal/send-message
@@ -256,6 +262,7 @@ News can be of type:
           "picurl" picurl
           "created" (java.util.Date.))
          (car/mset (str "user:" username ":uid") guid
+                   (str "user:" email ":uid") guid
                    (str "uid:" guid ":auth") authid
                    (str "auth:" authid) guid)
          (car/rpush "users" guid))

@@ -11,6 +11,7 @@
             [kickhub.github :refer :all]
             [kickhub.rss :refer :all]
             [noir.util.middleware :as middleware]
+            [noir.session :as session]
             [ring.util.response :as resp]
             [ring.util.codec :as codec]))
 
@@ -131,10 +132,11 @@
   ;; (POST "/" {params :params} (email-to-mailing params))
   (GET "/" req (index-page req))
   (GET "/login" req (login-page req))
-  (GET "/set-session" req (friend/authorize
-                           #{::users}
-                           (session/put! :username (:current (friend/identity req)))
-                           (resp/redirect "/")))
+  (GET "/set-session"
+       req (friend/authorize
+            #{::users}
+            (session/put! :username (:current (friend/identity req)))
+            (resp/redirect "/")))
   (GET "/activate/:authid" [authid]
        (friend/authorize
         #{::users}
@@ -146,7 +148,7 @@
         (do (confirm-transaction authid)
             (index-page nil :msg "Transaction confirmed, thanks"))))
 
-  (GET "/user/:username" req (user-page req))
+  (GET "/user/:username" [username] (user-page username))
   (POST "/user/update" {params :params} (update-user params))
   (GET "/project/:pname" req (project-page req))
 
