@@ -166,6 +166,8 @@
   (GET "/about" req (about-page req))
   (GET "/tos" req (tos-page req))
   (GET "/logout" req (logout req))
+  ;; FIXME (test)
+  ;; (GET "/repos" [] (pr-str (first (github-user-repos (session/get :access-token)))))
   (GET "/test" req (pr-str req))
   (route/resources "/")
   (route/not-found (notfound-page)))

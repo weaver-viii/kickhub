@@ -120,8 +120,21 @@
   [:.input-group :#email] (html/set-attr :value email))
 (html/defsnippet ^{:doc "Snippet for the submit email form."}
   submit-email "kickhub/html/forms.html" [:#submit-email] [])
+
+(html/defsnippet ^{:doc "Snippet for the gh project list."}
+  submit-gh-repos "kickhub/html/forms.html"
+  [:#submit-project :select :option] 
+  [opt val]
+  [:option] (html/do->
+             (html/content opt)
+             (html/set-attr :value val)))
+
 (html/defsnippet ^{:doc "Snippet for the submit project form."}
-  submit-project "kickhub/html/forms.html" [:#submit-project] [])
+  submit-project "kickhub/html/forms.html"
+  [:#submit-project] []
+  [:select] (maybe-content (map #(submit-gh-repos (:name %) (:name %))
+                                (github-user-repos (session/get :access-token)))))
+
 (html/defsnippet ^{:doc "Snippet for the submit donation form."}
   submit-donation "kickhub/html/forms.html" [:#submit-donation] [])
 (html/defsnippet ^{:doc "Snippet for the submit profile form."}
