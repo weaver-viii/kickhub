@@ -1,5 +1,6 @@
 (ns kickhub.github
   (:require [cheshire.core :as json]
+            [noir.session :as session]
             [clj-http.client :as http]))
 
 (defn- github-api-response
@@ -30,14 +31,14 @@
 (defn render-repos-page
   "Display user repos."
   [request]
-  (let [access-token (get-in request [:session :cemerick.friend/identity :current])
+  (let [access-token (session/get :access-token)
         repos-response (github-user-repos access-token)]
     (str (vec (map :name repos-response)))))
 
 (defn render-user-page
   "Display user infos"
   [request]
-  (let [access-token (get-in request [:session :cemerick.friend/identity :current])
+  (let [access-token  (session/get :access-token)
         user-response (github-user-info access-token)]
     ;; FIXME: used for tests only so far
     (pr-str user-response)))

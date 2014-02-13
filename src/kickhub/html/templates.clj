@@ -129,8 +129,11 @@
 (html/defsnippet ^{:doc "Snippet for the logged menu."}
   logged-menu "kickhub/html/forms.html"
   [:#logged-menu]
-  [username]
-  [:ul :li :a.profile]
+  [username at]
+  [:ul :li#gh] (if at
+                 (html/set-attr :style "display:none")
+                 (html/set-attr :style "display:inline"))
+  [:ul :li :a#profile]
   (html/set-attr :href (str (System/getenv "github_client_domain")
                             "/user/" username)))
 
@@ -159,6 +162,7 @@
   "Generate the page to display a user information."
   [username & msg]
   (let [username (or username (session/get :username))
+        at (session/get :access-token)
         ;; FIXME: display is different when connected/disconnected
         uid (get-username-uid username)]
     (index-tpl {:container
@@ -167,15 +171,16 @@
                         (my-donations (get-uid-transactions uid)))
                 :msg msg
                 :gravatar (get-uid-field uid "picurl")
-                :menu (if username (logged-menu username) (unlogged-menu))})))
+                :menu (if username (logged-menu username at) (unlogged-menu))})))
 
 (defn index-page
   "Generate the index page."
   [req & {:keys [msg]}]
-  (let [username (session/get :username)]
+  (let [username (session/get :username)
+        at (session/get :access-token)]
     (index-tpl {:container
                 (news (map news-to-sentence (reverse (get-news))))
-                :menu (if username (logged-menu username) (unlogged-menu))
+                :menu (if username (logged-menu username at) (unlogged-menu))
                 :gravatar (get-uid-field (get-username-uid username) "picurl")
                 :msg (or msg (if username
                                "You are now logged in"
@@ -185,10 +190,11 @@
   "Generate the login page."
   [req]
   (let [params (clojure.walk/keywordize-keys (:form-params req))
-        username (session/get :username)]
+        username (session/get :username)
+        at (session/get :access-token)]
     (index-tpl {:container (if username "You are already logged in"
                                (login))
-                :menu (if username (logged-menu username) (unlogged-menu))
+                :menu (if username (logged-menu username at) (unlogged-menu))
                 :gravatar (get-uid-field (get-username-uid username) "picurl")
                 ;; FIXME
                 :msg (if (= (:login_failed params) "Y")
@@ -209,14 +215,14 @@
   (let [access-token (get-in request [:session :cemerick.friend/identity :current])
         user_infos (github-user-info access-token)
         user_basic_infos (github-user-basic-info access-token)
-        username (:username user_basic_infos)
-        email (:email user_basic_infos)]
-    (if (get-username-uid username)
-      (do (session/put! :username username)
+        gh-username (:username user_basic_infos)
+        gh-email (:email user_basic_infos)]
+    (if (get-username-uid gh-username)
+      (do (session/put! :username gh-username)
+          (session/put! :access-token access-token)
           (resp/redirect "/"))
       (index-tpl {:msg "Select a password for your new account"
-                  :container (register username email)
-                  :gravatar (get-uid-field (get-username-uid username) "picurl")
+                  :container (register gh-username gh-email)
                   :menu (unlogged-menu)}))))
   
 (defn submit-project-page
@@ -226,20 +232,22 @@
         params (clojure.walk/keywordize-keys (:form-params req))
         name (:name params)
         repo (:repo params)
+        at (session/get :access-token)
         uid (get-username-uid username)]
   (if (not (empty? params))
     (do (create-project name repo uid)
         (resp/redirect (str "/user/" username)))
-    (pr-str (render-repos-page req)))))
-    
-    ;; (index-tpl {:container (submit-project))
-    ;;             :gravatar (get-uid-field uid "picurl")
-    ;;             :menu (logged-menu username)}))))
+    ;; FIXME (test):
+    ;; (pr-str (render-repos-page req)))))
+    (index-tpl {:container (submit-project)
+                :gravatar (get-uid-field uid "picurl")
+                :menu (logged-menu username at)}))))
 
 (defn submit-donation-page
   "Generate the page to submit a donation."
   [req]
   (let [username (session/get :username)
+        at (session/get :access-token)
         params (clojure.walk/keywordize-keys (:form-params req))
         amount (:amount params)
         pid (:pid params)
@@ -250,7 +258,7 @@
           (resp/redirect (str "/user/" username)))
       (index-tpl {:container (submit-donation)
                   :gravatar (get-uid-field fuid "picurl")
-                  :menu (logged-menu username)}))))
+                  :menu (logged-menu username at)}))))
 
 
 (defn project-page
@@ -260,12 +268,14 @@
         route-params (clojure.walk/keywordize-keys (:route-params req))
         pname (:pname route-params)
         pid (get-pname-pid pname)
-        username (session/get :username)]
+        username (session/get :username)
+        at (session/get :access-token)
+        ]
     (index-tpl {:container (str "Project: " (get-pid-field pid "name")
                                 " by " (get-uid-field
                                         (get-pid-field pid "by") "u"))
                 :gravatar (get-uid-field (get-username-uid username) "picurl")
-                :menu (if username (logged-menu username) (unlogged-menu))})))
+                :menu (if username (logged-menu username at) (unlogged-menu))})))
 
 (defn notfound-page "Generate the 404 page."
   []
@@ -274,17 +284,19 @@
 
 (defn about-page "Generate the about page."
   [req]
-  (let [username (session/get :username)]
+  (let [username (session/get :username)
+        at (session/get :access-token)]
     (index-tpl {:container (about) :logo-link "/"
                 :gravatar (get-uid-field (get-username-uid username) "picurl")
-                :menu (if username (logged-menu username) (unlogged-menu))})))
+                :menu (if username (logged-menu username at) (unlogged-menu))})))
 
 (defn tos-page "Generate the tos page."
   [req]
-  (let [username (session/get :username)]
+  (let [username (session/get :username)
+        at (session/get :access-token)]
     (index-tpl {:container (tos)
                 :gravatar (get-uid-field (get-username-uid username) "picurl")
-                :menu (if username (logged-menu username) (unlogged-menu))})))
+                :menu (if username (logged-menu username at) (unlogged-menu))})))
 
 ;;; * Local variables
 
