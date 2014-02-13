@@ -30,20 +30,14 @@
 (defn render-repos-page
   "Display user repos."
   [request]
-  (let [authentications
-        (get-in request [:session :cemerick.friend/identity :authentications])
-        ;;        access-token (:access_token (second (first authentications)))
-        access-token (:identity (second (first authentications)))
+  (let [access-token (get-in request [:session :cemerick.friend/identity :current])
         repos-response (github-user-repos access-token)]
     (str (vec (map :name repos-response)))))
 
 (defn render-user-page
   "Display user infos"
   [request]
-  (let [authentications
-        (get-in request [:session :cemerick.friend/identity :authentications])
-        ;;        access-token (:access_token (second (first authentications)))
-        access-token (:identity (second (first authentications)))
+  (let [access-token (get-in request [:session :cemerick.friend/identity :current])
         user-response (github-user-info access-token)]
     ;; FIXME: used for tests only so far
     (pr-str user-response)))

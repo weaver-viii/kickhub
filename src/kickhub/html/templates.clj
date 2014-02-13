@@ -206,9 +206,7 @@
 (defn register-page-gh
   "Register via Github."
   [request]
-  (let [authentications
-        (get-in request [:session :cemerick.friend/identity :authentications])
-        access-token (:identity (second (first authentications)))
+  (let [access-token (get-in request [:session :cemerick.friend/identity :current])
         user_infos (github-user-info access-token)
         user_basic_infos (github-user-basic-info access-token)
         username (:username user_basic_infos)
@@ -232,9 +230,11 @@
   (if (not (empty? params))
     (do (create-project name repo uid)
         (resp/redirect (str "/user/" username)))
-    (index-tpl {:container (submit-project)
-                :gravatar (get-uid-field uid "picurl")
-                :menu (logged-menu username)}))))
+    (pr-str (render-repos-page req)))))
+    
+    ;; (index-tpl {:container (submit-project))
+    ;;             :gravatar (get-uid-field uid "picurl")
+    ;;             :menu (logged-menu username)}))))
 
 (defn submit-donation-page
   "Generate the page to submit a donation."
