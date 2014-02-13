@@ -160,7 +160,7 @@ Here is your activation link:
     (send-email from_email
                 subject
                 (str project_url "\n"
-                     user_url
+                     user_url "\n"
                      confirm_url))))
 
 (defn email-to-mailing
