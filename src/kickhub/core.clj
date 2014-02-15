@@ -136,7 +136,7 @@
   (POST "/donation" req (submit-donation-page req))
 
   (GET "/about" req (about-page req))
-  (POST "/paypal" {params :params} (pr-str params))
+  (POST "/paypal" {params :params} (write-paypal params))
   (GET "/tos" req (tos-page req))
   (GET "/logout" req (logout req))
   (GET "/repos" [] (pr-str (first (github-user-repos (session/get :access-token)))))
