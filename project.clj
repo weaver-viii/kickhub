@@ -5,7 +5,7 @@
             :url "http://www.gnu.org/licenses/agpl.txt"
             :repo "https://github.com/bzg/kickhub"}
   :codox {:sources ["src/kickhub"]}
-  :immutant {:context-path "/" :nrepl-port 4005}
+  ;; :immutant {:context-path "/" :nrepl-port 4005}
   :dependencies
   [[org.clojure/clojure "1.5.1"]
    [com.cemerick/friend "0.2.0" :exclusions [org.clojure/core.cache]]
