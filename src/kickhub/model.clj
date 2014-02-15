@@ -101,10 +101,6 @@ id is a string (e.g. \"uid\", \"pid\" or \"tid\")."
 
 ;;; * Email processing
 
-(defn write-paypal
-  [params]
-  (send-email "bzg@altern.org" "ça marche" (pr-str params)))
-
 ;; FIXME: This uses bzg@kickhub.com as the value of the From: header
 ;; We may store the From: header's value in a variable.
 (defn send-email
@@ -117,6 +113,10 @@ id is a string (e.g. \"uid\", \"pid\" or \"tid\")."
     :to email
     :subject subject
     :body body}))
+
+(defn write-paypal
+  [params]
+  (send-email "bzg@altern.org" "ça marche" (pr-str params)))
 
 ;; FIXME: Store email messages into the databas
 (defn- send-email-activate-account
