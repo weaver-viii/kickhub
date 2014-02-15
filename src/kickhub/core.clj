@@ -37,7 +37,8 @@
   [username]
   (let [uid (get-username-uid username)
         password (get-uid-field uid "p")]
-    {:username username :password password :roles #{::users}}))
+    (session/put! :username username)
+    {:identity username :password password :roles #{::users}}))
 
 (defn- scrypt-credential-fn
   "Variant of `bcrypt-credential-fn` using scrypt."
@@ -46,20 +47,6 @@
     (let [password-key (or (-> creds meta ::password-key) :password)]
       (when (sc/verify password (get creds password-key))
         (dissoc creds password-key)))))
-
-(defn- wrap-friend
-  "Wrap friend interactive form authentication around `handler`."
-  [handler]
-  (friend/authenticate
-   handler
-   {:allow-anon? true
-    :default-landing-uri "/set-session"
-    :workflows [(workflows/interactive-form
-                 :allow-anon? true
-                 :login-uri "/login"
-                 ;; :redirect-on-auth? "/" ;; This is the default
-                 :credential-fn (partial scrypt-credential-fn load-user)
-                 :config-auth friend-config-auth)]}))
 
 ;;; * Friend Github authentication
 
@@ -105,21 +92,6 @@
       clojure.walk/keywordize-keys
       :access_token))
 
-(defn- wrap-friend-github
-  "Wrap friend authentication around `handler`."
-  [handler]
-  (friend/authenticate
-   handler
-   {:allow-anon? true
-    :default-landing-uri "/maybe-register"
-    :workflows
-    [(oauth2/workflow
-      {:client-config gh-client-config
-       :uri-config friend-gh-uri-config
-       :login-uri "/github"
-       :access-token-parsefn access-token-parsefn
-       :config-auth friend-config-auth})]}))
-
 ;;; * Routes
 
 ;; This section contains the main routes definition along with the
@@ -164,18 +136,47 @@
   (POST "/donation" req (submit-donation-page req))
 
   (GET "/about" req (about-page req))
+  (POST "/paypal" {params :params} (pr-str params))
   (GET "/tos" req (tos-page req))
   (GET "/logout" req (logout req))
-  ;; FIXME (test)
-  ;; (GET "/repos" [] (pr-str (first (github-user-repos (session/get :access-token)))))
+  (GET "/repos" [] (pr-str (first (github-user-repos (session/get :access-token)))))
   (GET "/test" req (pr-str req))
   (route/resources "/")
   (route/not-found (notfound-page)))
 
+(defn credential-fn-gh
+  [token]
+  (let [at (:access-token token)
+        basic-infos (github-user-basic-info at)]
+    (session/put! :access-token at)
+    {:identity (:username basic-infos)
+     :access-token at
+     :roles #{::users}}))
+  
+(defn- wrap-friend
+  "Wrap friend interactive form authentication around `handler`."
+  [handler]
+  (friend/authenticate
+   handler
+   {:allow-anon? true
+    :workflows [(workflows/interactive-form
+                 :allow-anon? true
+                 :login-uri "/login"
+                 :credential-fn (partial scrypt-credential-fn load-user)
+                 :config-auth friend-config-auth)
+                (oauth2/workflow
+                 {:client-config gh-client-config
+                  :uri-config friend-gh-uri-config
+                  :login-uri "/github"
+                  :credential-fn credential-fn-gh
+                  :access-token-parsefn access-token-parsefn
+                  :config-auth friend-config-auth})
+                ]}))
+
 (def ^{:doc "Main ring handler."}
   ring-handler
   (middleware/app-handler
-   [(wrap-friend-github (wrap-friend app-routes))]))
+   [(wrap-friend app-routes)]))
 
 ;;; * Local variables
 
