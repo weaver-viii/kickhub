@@ -162,8 +162,7 @@
     :workflows [(workflows/interactive-form
                  :allow-anon? true
                  :login-uri "/login"
-                 :credential-fn (partial scrypt-credential-fn load-user)
-                 :config-auth friend-config-auth)
+                 :credential-fn (partial scrypt-credential-fn load-user))
                 (oauth2/workflow
                  {:client-config gh-client-config
                   :uri-config friend-gh-uri-config

@@ -27,10 +27,9 @@
     (apply array-map ~@body)))
 
 (defn get-last-stream
-  "Get the n last items from stream of kind for id.
-n is a positive integer.
-kind is a string (e.g. \"users\", \"projects\" or \"news\").
-id is a string (e.g. \"uid\", \"pid\" or \"tid\")."
+  "Get the n last items from stream of kind for id.  n is a positive
+  integer.  kind is a string (e.g. \"users\", \"projects\" or
+  \"news\").  id is a string (e.g. \"uid\", \"pid\" or \"tid\")."
   [[kind id] n]
   (let [plist (reverse (take n (wcar* (car/lrange kind 0 -1))))]
     (map #(keywordize-array-mapize
