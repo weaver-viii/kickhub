@@ -6,6 +6,7 @@
             [compojure.route :as route]
             [friend-oauth2.workflow :as oauth2]
             [friend-oauth2.util :as oauth2-util]
+            [org.httpkit.server :refer :all]
             [kickhub.html.templates :refer :all]
             [kickhub.model :refer :all]
             [kickhub.github :refer :all]
@@ -176,6 +177,9 @@
   ring-handler
   (middleware/app-handler
    [(wrap-friend app-routes)]))
+
+(defn -main [& args]
+  (run-server #'ring-handler {:port 8080}))
 
 ;;; * Local variables
 
