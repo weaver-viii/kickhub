@@ -22,7 +22,8 @@
 (html/defsnippet ^{:doc "Paypal form."}
   paypal-button "kickhub/views/html/paypal.html" [:#paypal]
   [{:keys [email]}]
-  [:#business] (html/set-attr :value email)
+  [:#business] (html/set-attr :value "carsten.dominik@gmail.com")
+                                        ;email)
   [:#submit] (html/content "Support"))
 
 (html/defsnippet ^{:doc "Display a task"}
