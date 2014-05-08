@@ -3,5 +3,5 @@
             [kickhub.core :refer :all]))
 
 (deftest a-test
-  (testing "FIXME, I'm dumb."
+  (testing "Nothing interesting yet."
     (is (= 1 1))))

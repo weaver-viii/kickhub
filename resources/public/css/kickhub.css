@@ -1,24 +1,30 @@
+@import url(http://fonts.googleapis.com/css?family=Brawler);
+
+html {
+    margin:0;
+    padding:0;
+}
+
 body {
-  font-size: 14pt;
-  padding: 0em;
-  margin: 0em;
+    margin:6em 5em 2em 5em;
+    font-size:1.6em;
+    font-family: Brawler;
 }
 
-#container {
-  padding-top: 3em;
-  width: 60%;
-  margin: auto;
+img.logo {
+    position:fixed;
+    top:.6em;
+    left:.6em;
+    width:130px;
 }
 
-#gravatar {
-  right: .8em;
-  top: .8em;
-  position: fixed;
+#content {
+    margin-bottom: 2em;
 }
 
 #menu {
-  right: .8em;
-  top: 5.5em;
+  right: 1.2em;
+  top: 1.4em;
   position: fixed;
 }
 
@@ -26,68 +32,7 @@ body {
   display: inline;
 }
 
-li, input {
-  list-style-type: none;
+.btn-align {
+    text-align: center;
 }
 
-input {
-  background-color: #eee;
-  padding: .4em;
-  display: block;
-  margin: .4em;
-  border: 1px solid gray;
-}
-
-.input-group {
-  max-width: 60%;
-  margin: auto;
-}
-
-.btn-info {
-  margin: 1.4em;
-}
-
-#logo img {
-  left: .3em;
-  top: .3em;
-  width: 120px;
-  position: absolute;
-}
-
-#msg, p.alert {
-  padding-top: 1em;
-  text-align: center;
-  color: darkorange;
-  width: 60%;
-  margin: auto;
-}
-
-#notifications {
-  display: inline;
-}
-
-#info {
-  color: #ff0000;
-}
-
-.news {
-  display: block;
-}
-
-#footer {
-  background-color: white;
-  text-align: center;
-  z-index: 100;
-  padding: .2em;
-  width: 100%;
-  position: fixed;
-  bottom: 0;
-}
-
-#footer, button {
-  margin: .3em;
-}
-
-a {
-  color: darkorange;
-}

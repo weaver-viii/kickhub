@@ -1,0 +1,12 @@
+<form id="paypal" name="_xclick" action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post">
+  <input type="hidden" name="cmd" id="cmd" value="_xclick" />
+  <input type="hidden" name="business" id="business" value="email@email.com" />
+  <input type="hidden" name="item_name" id="item_name" value="Task name" />
+  <input type="hidden" name="notify_url" value="http://localhost:8080/transaction_process" />
+  <input type="hidden" name="item_number" value="1" />
+  <input type="hidden" name="lc" value="GB" />
+  <input type="hidden" name="currency_code" value="USD" />
+  <input type="hidden" name="tax" value="0" />
+  <input type="hidden" name="return" id="return" value="http://localhost:8080" />
+  <button name="submit" id="submit" alt="Support Org-mode" /></button>
+</form>

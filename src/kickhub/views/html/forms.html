@@ -1,0 +1,120 @@
+<form id="login" class="form-horizontal" role="form" action="/login" method="post">
+  <div class="form-group">
+    <label class="col-sm-3 control-label">Username</label>
+    <div class="col-sm-7">
+      <input class="form-control" type="text" id="username" name="username" placeholder="Username" />
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">Password</label>
+    <div class="col-sm-7">
+      <input class="form-control" type="password" id="password" name="password" placeholder="Password" />
+    </div>
+  </div>
+  <div class="btn-align">
+    <button id="submit-btn" type="submit" class="btn btn-info">Login</button>
+  </div>
+</form>
+
+<!-- ======================================================================== -->
+
+<form id="register" class="form-horizontal" role="form" action="/register" method="post">
+  <div class="form-group">
+    <label class="col-sm-3 control-label">Username</label>
+    <div class="col-sm-7">
+      <input class="form-control" type="text" id="username" name="username" placeholder="Username" />
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">Email</label>
+    <div class="col-sm-7">
+      <input class="form-control" type="text" id="email" name="email" placeholder="Email" />
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">Password</label>
+    <div class="col-sm-7">
+      <input class="form-control" type="password" id="password" name="password" placeholder="Password" />
+    </div>
+  </div>
+  <div class="btn-align">
+    <button id="submit-btn" type="submit" class="btn btn-info">Register</button>
+  </div>
+</form>
+
+<!-- ======================================================================== -->
+
+<form id="submit-task" class="form-horizontal" role="form" action="/task_new" method="post">
+  <div class="form-group">
+    <label class="col-sm-3 control-label">Task name</label>
+    <div class="col-sm-7">
+      <input class="form-control" type="text" id="name" name="name" placeholder="Name of the task" />
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="bs3Select" class="col-sm-3 control-label">License</label>
+    <div class="col-sm-7">
+      <select id="license" name="license" class="selectpicker show-tick form-control" data-live-search="true">
+	<option>Affero GPL</option>
+	<option>Apache License</option>
+	<option>Artistic License</option>
+	<option>BSD license</option>
+	<option>Eclipse Public License</option>
+	<option>GNU Free Documentation License</option>
+	<option>GNU General Public License</option>
+	<option>GNU Lesser General Public License</option>
+	<option>LaTeX Project Public License</option>
+	<option>MIT license</option>
+	<option>Mozilla Public License</option>
+	<option>Public Domain</option>
+	<option>Creative Commons CC0</option>
+	<option>Creative Commons BY</option>
+	<option>Creative Commons BY-SA</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">Status</label>
+    <div class="col-sm-7">
+      <div class="btn-group" data-toggle="buttons">
+	<label class="btn btn-danger">
+	  <input type="radio" name="status" id="status" value="todo"/> TODO
+	</label>
+	<label class="btn btn-success">
+	  <input type="radio" name="status" id="status" value="done"/> DONE
+	</label>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">URL</label>
+    <div class="col-sm-7">
+      <input class="form-control" type="text" id="url" name="url" placeholder="URL of the task" />
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">Description</label>
+    <div class="col-sm-7">
+      <textarea class="form-control" rows="3" id="desc" name="desc" placeholder="Summary"></textarea>
+    </div>
+  </div>
+  <div id="input-goal" class="form-group">
+    <label class="col-sm-3 control-label">Goal (in $USD)</label>
+    <div class="col-sm-7">
+      <input class="form-control" type="text" id="goal" name="goal" placeholder="Expected amount of donations" />
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">Accept more?</label>
+    <div class="col-sm-7">
+      <div class="input-group">
+	<input class="form-control" type="checkbox" id="more" name="more" checked />
+      </div>
+    </div>
+  </div>
+  <div class="btn-align">
+    <button id="submit-btn" type="submit" class="btn btn-info btn-lg">
+      Add this task
+    </button>
+  </div>
+</form>
